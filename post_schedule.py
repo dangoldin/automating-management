@@ -36,10 +36,13 @@ for row in rows[1:]:
 
   if rowmap['Current'] == 'Yes':
     for squad in squads:
-      msg += squad + ': ' + rowmap[squad] + ' @' + user_map[rowmap[squad].lower()] + '\n'
+      msg += squad + ': ' + ' <@' + user_map[rowmap[squad].lower()] + '>\n'
 
 sc.api_call(
   "chat.postMessage",
-  channel="#tmp-slack-api",
+  username=config.USERNAME,
+  as_user=False,
+  channel=config.CHANNEL,
+  icon_url=config.ICON_URL,
   text=msg
 )
