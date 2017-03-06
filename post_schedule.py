@@ -2,11 +2,11 @@
 
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from slackclient import SlackClient
 
 import config
+from slack_helper import SlackHelper
 
-sc = SlackClient(config.SLACK_TOKEN)
+sh = SlackHelper(config.SLACK_TOKEN)
 
 scope = ['https://spreadsheets.google.com/feeds']
 
@@ -22,13 +22,6 @@ rows = wks.get_all_values()
 
 squads = config.SQUADS
 
-users = sc.api_call('users.list')
-users = users['members']
-
-user_map = {}
-for user in users:
-  user_map[user['profile']['real_name'].lower()] = user['name'].lower()
-
 msg = ''
 header = rows[0]
 for row in rows[1:]:
@@ -36,13 +29,6 @@ for row in rows[1:]:
 
   if rowmap['Current'] == 'Yes':
     for squad in squads:
-      msg += squad + ': ' + ' <@' + user_map[rowmap[squad].lower()] + '>\n'
+      msg += squad + ': ' + ' <@' + sh.get_username_for_fullname(rowmap[squad])  + '>\n'
 
-sc.api_call(
-  "chat.postMessage",
-  username=config.USERNAME,
-  as_user=False,
-  channel=config.CHANNEL,
-  icon_url=config.ICON_URL,
-  text=msg
-)
+sh.send_message(msg, config.USERNAME, config.CHANNEL, config.ICON_URL)
