@@ -25,10 +25,12 @@ squads = config.SQUADS
 msg = ''
 header = rows[0]
 for row in rows[1:]:
-  rowmap = dict(zip(header, row))
+    rowmap = dict(zip(header, row))
 
-  if rowmap['Current'] == 'Yes':
-    for squad in squads:
-      msg += squad + ': ' + ' <@' + sh.get_username_for_fullname(rowmap[squad])  + '>\n'
+    if rowmap['Current'] == 'Yes':
+        print row
+
+        for squad in squads:
+            msg += squad + ': ' + ' <@' + sh.get_username_for_fullname(rowmap[squad])  + '>\n'
 
 sh.send_message(msg, config.USERNAME, config.CHANNEL, config.ICON_URL)
