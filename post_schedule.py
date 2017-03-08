@@ -1,36 +1,18 @@
 #! /usr/bin/env python
 
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-
 import config
 from slack_helper import SlackHelper
+from sheet_helper import GSheetHelper
 
 sh = SlackHelper(config.SLACK_TOKEN)
 
-scope = ['https://spreadsheets.google.com/feeds']
-
-credentials = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
-
-gc = gspread.authorize(credentials)
-
-wkbook = gc.open(config.WORKBOOK)
-
-wks = wkbook.worksheet(config.WORKSHEET)
-
-rows = wks.get_all_values()
-
-squads = config.SQUADS
+gh = GSheetHelper(config.CREDENTIALS_FILE)
 
 msg = ''
-header = rows[0]
-for row in rows[1:]:
-    rowmap = dict(zip(header, row))
 
+for rowmap in gh.get_rows(config.WORKBOOK, config.WORKSHEET):
     if rowmap['Current'] == 'Yes':
-        print row
-
-        for squad in squads:
+        for squad in config.SQUADS:
             msg += squad + ': ' + ' <@' + sh.get_username_for_fullname(rowmap[squad])  + '>\n'
 
 sh.send_message(msg, config.USERNAME, config.CHANNEL, config.ICON_URL)
