@@ -12,18 +12,35 @@ class SlackHelper:
         users = users['members']
         user_map = {}
         for user in users:
-            user_map[user['profile']['real_name'].lower()] = user['name'].lower()
+            if not user['deleted']:
+                user_map[user['profile']['real_name'].lower()] = user
         return user_map
 
     def get_username_for_fullname(self, fullname):
-        return self.user_map[fullname.lower()]
+        return self.user_map[fullname.lower()]['name'].lower()
 
-    def send_message(self, msg, username, channel, icon_url):
-        self.sc.api_call(
-            "chat.postMessage",
+    def get_name_by_id(self, my_id):
+        return [user['name'] for user in self.user_map.values() if user['id'] == my_id][0]
+
+    def send_message(self, msg, username, channel, icon_url, as_user = False):
+        return self.sc.api_call(
+            'chat.postMessage',
             username=username,
-            as_user=False,
+            as_user=as_user,
             channel=channel,
             icon_url=icon_url,
             text=msg
             )
+
+    def get_channel_members(self, channel_filter):
+        all_channels = self.sc.api_call('channels.list')['channels']
+
+        my_channel = [channel for channel in all_channels \
+            if channel['name'] == channel_filter.replace('#', '')]
+
+        if not my_channel:
+            return None
+
+        user_ids = [user['id'] for user in self.user_map.values()]
+
+        return [user for user in my_channel[0]['members'] if user in user_ids]
