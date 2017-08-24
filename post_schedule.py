@@ -17,16 +17,13 @@ today = datetime.today()
 all_rows = gh.get_rows(config.WORKBOOK, WORKHSEET_ON_CALL_CAL)
 for i, rowmap in enumerate(all_rows):
     current = False
-    # Check if there's already a field telling us who's current
-    if 'Current' in rowmap and rowmap['Current'] == 'Yes':
-        current = True
-    # Otherwise check if date is within proper range
-    else:
-        if i+1 < len(rowmap):
-            curr = datetime.strptime(rowmap['Start Date'], "%m/%d/%Y")
-            next = datetime.strptime(all_rows[i+1]['Start Date'], "%m/%d/%Y")
-            if today >= curr and today < next:
-                current = True
+    if i+1 < len(all_rows):
+        # TODO: Make date more generic
+        curr_date = datetime.strptime(rowmap['Start Date'], "%m/%d/%Y")
+        next_date = datetime.strptime(all_rows[i+1]['Start Date'], "%m/%d/%Y")
+        if today >= curr_date and today < next_date:
+            current = True
+            print 'Current:', rowmap['Start Date']
 
     if current:
         for squad in config.SQUADS:
