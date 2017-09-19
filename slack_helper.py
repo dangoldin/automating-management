@@ -29,7 +29,9 @@ class SlackHelper:
             as_user=as_user,
             channel=channel,
             icon_url=icon_url,
-            text=msg
+            text=msg,
+            link_names=1,
+            parse='full',
             )
 
     def get_channel_members(self, channel_filter):

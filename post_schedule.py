@@ -27,6 +27,6 @@ for i, rowmap in enumerate(all_rows):
 
     if current:
         for squad in config.SQUADS:
-            msg += squad + ': ' + '<@' + sh.get_username_for_fullname(rowmap[squad])  + '>\n'
+            msg += squad + ': ' + '@' + sh.get_username_for_fullname(rowmap[squad])  + '\n'
 
 sh.send_message(msg, config.USERNAME, config.CHANNEL, config.ICON_URL)
