@@ -7,3 +7,8 @@ Google Spreadsheet and Slack integration. At the moment there's a single script 
 - [x] Actually process dates rather than relying on Gcal
 - [ ] Support more generic calendar formats
 - [ ] Support people lists
+
+## Ideas
+
+- [ ] Support a "meta" tab
+- [ ] Treat entire calendar as a database, sheet as a table
