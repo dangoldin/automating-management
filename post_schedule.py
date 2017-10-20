@@ -10,23 +10,29 @@ sh = SlackHelper(config.SLACK_TOKEN)
 
 gh = GSheetHelper(config.CREDENTIALS_FILE)
 
-WORKHSEET_ON_CALL_CAL = 'On Call Cal'
+# Read meta tab
+meta_rows = gh.get_rows(config.WORKBOOK, config.WORKSHEET_META_TAB)
 
-msg = ''
-today = datetime.today()
-all_rows = gh.get_rows(config.WORKBOOK, WORKHSEET_ON_CALL_CAL)
-for i, rowmap in enumerate(all_rows):
-    current = False
-    if i+1 < len(all_rows):
-        # TODO: Make date more generic
-        curr_date = datetime.strptime(rowmap['Start Date'], "%m/%d/%Y")
-        next_date = datetime.strptime(all_rows[i+1]['Start Date'], "%m/%d/%Y")
-        if today >= curr_date and today < next_date:
-            current = True
-            print 'Current:', rowmap['Start Date']
+for row in meta_rows:
+    tab, message, date_col, user_cols = [row[x] for x in ('Tab', 'Message', 'Date Column', 'User Columns')]
+    print tab, message, date_col, user_cols
 
-    if current:
-        for squad in config.SQUADS:
-            msg += squad + ': ' + '@' + sh.get_username_for_fullname(rowmap[squad])  + '\n'
+    msg = message + '\n'
+    today = datetime.today()
+    all_rows = gh.get_rows(config.WORKBOOK, tab)
+    for i, rowmap in enumerate(all_rows):
+        current = False
+        if i+1 < len(all_rows):
+            # TODO: Make date more generic
+            curr_date = datetime.strptime(rowmap[date_col], "%m/%d/%Y")
+            next_date = datetime.strptime(all_rows[i+1][date_col], "%m/%d/%Y")
+            if today >= curr_date and today < next_date:
+                current = True
+                print 'Current:', rowmap[date_col]
 
-sh.send_message(msg, config.USERNAME, config.CHANNEL, config.ICON_URL)
+        if current:
+            for squad in user_cols.split(','):
+                squad = squad.strip()
+                msg += squad + ': ' + '@' + sh.get_username_for_fullname(rowmap[squad])  + '\n'
+
+    sh.send_message(msg, config.USERNAME, config.CHANNEL, config.ICON_URL)

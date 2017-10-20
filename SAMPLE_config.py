@@ -3,11 +3,10 @@
 # Google sheets settings
 CREDENTIALS_FILE = 'credentials.json'
 WORKBOOK = 'Calendars'
-WORKSHEET = 'On Call Cal'
+WORKSHEET_META_TAB = 'Meta'
 
 # Slack settings
 SLACK_TOKEN = ''
-SQUADS = ['Backend', 'Frontend']
 USERNAME = ''
 ICON_URL = ''
 CHANNEL = ''
