@@ -14,10 +14,10 @@ gh = GSheetHelper(config.CREDENTIALS_FILE)
 meta_rows = gh.get_rows(config.WORKBOOK, config.WORKSHEET_META_TAB)
 
 for row in meta_rows:
-    tab, message, date_col, user_cols = [row[x] for x in ('Tab', 'Message', 'Date Column', 'User Columns')]
-    print tab, message, date_col, user_cols
+    tab, message, date_col, user_cols, message_col = [row[x] for x in ('Tab', 'Message', 'Date Column', 'User Columns', 'Message Col')]
+    print tab, message, date_col, user_cols, message_col
 
-    msg = message + '\n'
+    msg = '*' + message + '*\n'
     today = datetime.today()
     all_rows = gh.get_rows(config.WORKBOOK, tab)
     for i, rowmap in enumerate(all_rows):
@@ -31,8 +31,12 @@ for row in meta_rows:
                 print 'Current:', rowmap[date_col]
 
         if current:
-            for squad in user_cols.split(','):
-                squad = squad.strip()
-                msg += squad + ': ' + '@' + sh.get_username_for_fullname(rowmap[squad])  + '\n'
+            if message_col:
+                msg += message_col + ': ' + rowmap[message_col] + '\n'
+
+            for user_col in user_cols.split(','):
+                user_col = user_col.strip()
+                if user_col:
+                    msg += user_col + ': ' + '@' + sh.get_username_for_fullname(rowmap[user_col])  + '\n'
 
     sh.send_message(msg, config.USERNAME, config.CHANNEL, config.ICON_URL)
