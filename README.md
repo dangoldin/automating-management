@@ -6,7 +6,7 @@ Google Spreadsheet and Slack integration. At the moment there's a single script 
 
 Tab | Message | Message Col | Date Column | User Columns | Calendar Type | Slack Channels |Active
 --- | --- | --- | --- | --- | --- | --- | --- | ---
-My Cal | Currently on call || Date | Frontend,Backend | Current | #eng-oncall, #eng-general | 1
+My Cal | Currently on call | | Date | Frontend,Backend | Current | #eng-oncall, #eng-general | 1
 
 ## TODOs
 
