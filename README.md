@@ -5,8 +5,8 @@ Google Spreadsheet and Slack integration. At the moment there's a single script 
 ## TODOs
 
 - [x] Actually process dates rather than relying on Gcal
-- [ ] Support more generic calendar formats
 - [x] Support people lists
+- [ ] Support more generic date formats
 
 ## Ideas
 
