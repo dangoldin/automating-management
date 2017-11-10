@@ -17,27 +17,32 @@ def get_custom_field_key(name):
             return field['key']
     return found_field
 
-# issues = jira.search_issues('status = Done and resolutiondate >= "2017-10-01" and resolutionDate < "2017-11-01" AND type = story AND labels not in (priority:1, priority:2, priority:3, priority:4, priority:5, priority:6, priority:7, priority:8, priority:9, priority:10, priority:11, priority:12, priority:13, priority:14, priority:15, priority:16, priority:17, priority:18, priority:19, priority:20, priority:21, priority:22, priority:23, priority:24, priority:25, devops)')
+def get_priority_stats(issues, story_point_field):
+    priority_count = Counter()
+    priority_story_points = defaultdict(float)
+    for issue in issues:
+        for label in issue.fields.labels:
+            if 'priority:' in label:
+                priority = int(label.split(':')[1])
+                story_points = getattr(issue.fields, story_point_field, 0.0)
+                if story_points is None:
+                    story_points = 0.0
+                priority_count.update([priority])
+                priority_story_points[priority] += float(story_points)
+    return priority_count, priority_story_points
 
-# for issue in issues:
-#     print issue, issue.fields.summary, issue.fields.labels, dir(issue.fields), getattr(issue.fields, story_point_field)
+def print_dict(d):
+    for key, val in d.iteritems():
+        print key, val
 
 story_point_field = get_custom_field_key('Story Points')
 
 issues = jira.search_issues('status = Done and resolutiondate >= "2017-10-01" and resolutionDate < "2017-11-01" AND type = story AND labels in (priority:1, priority:2, priority:3, priority:4, priority:5, priority:6, priority:7, priority:8, priority:9, priority:10, priority:11, priority:12, priority:13, priority:14, priority:15, priority:16, priority:17, priority:18, priority:19, priority:20, priority:21, priority:22, priority:23, priority:24, priority:25)')
 
-priority_count = Counter()
-priority_story_points = defaultdict(float)
-for issue in issues:
-    for label in issue.fields.labels:
-        if 'priority:' in label:
-            priority = int(label.split(':')[1])
-            story_points = getattr(issue.fields, story_point_field, 0.0)
-            if story_points is None:
-                story_points = 0.0
-            priority_count.update([priority])
-            print issue, story_points
-            priority_story_points[priority] += float(story_points)
+priority_count, priority_story_points = get_priority_stats(issues, story_point_field)
 
-print priority_count.most_common(100)
-print priority_story_points
+print 'Priority counts'
+print_dict(priority_count)
+
+print 'Priority story points'
+print_dict(priority_story_points)
