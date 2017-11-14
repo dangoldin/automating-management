@@ -94,3 +94,6 @@ config.py
 
 # Temp files
 *~
+
+# Project files
+.vscode/

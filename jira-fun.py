@@ -1,7 +1,5 @@
 #! /usr/bin/env python
 
-# TODO: Extract story points from the custom field
-
 from collections import Counter, defaultdict
 from jira import JIRA
 
@@ -37,7 +35,9 @@ def print_dict(d):
 
 story_point_field = get_custom_field_key('Story Points')
 
-issues = jira.search_issues('status = Done and resolutiondate >= "2017-10-01" and resolutionDate < "2017-11-01" AND type = story AND labels in (priority:1, priority:2, priority:3, priority:4, priority:5, priority:6, priority:7, priority:8, priority:9, priority:10, priority:11, priority:12, priority:13, priority:14, priority:15, priority:16, priority:17, priority:18, priority:19, priority:20, priority:21, priority:22, priority:23, priority:24, priority:25)')
+priorities = ['priority:%d' % i for i in range(1,26)]
+
+issues = jira.search_issues('status = Done and resolutiondate >= "2017-11-01" and resolutionDate < "2017-12-01" AND type = story AND labels in (' + ','.join(priorities) + ')')
 
 priority_count, priority_story_points = get_priority_stats(issues, story_point_field)
 
