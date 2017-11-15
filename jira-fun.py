@@ -18,6 +18,7 @@ def get_custom_field_key(name):
 def get_priority_stats(issues, story_point_field):
     priority_count = Counter()
     priority_story_points = defaultdict(float)
+    no_priority_stories = []
     for issue in issues:
         for label in issue.fields.labels:
             if 'priority:' in label:
@@ -27,11 +28,13 @@ def get_priority_stats(issues, story_point_field):
                     story_points = 0.0
                 priority_count.update([priority])
                 priority_story_points[priority] += float(story_points)
-    return priority_count, priority_story_points
+            else:
+                no_priority_stories.append(issue)
+    return priority_count, priority_story_points, no_priority_stories
 
 def print_dict(d):
     for key, val in d.iteritems():
-        print key, val
+        print "\t", key, val
 
 story_point_field = get_custom_field_key('Story Points')
 
@@ -39,10 +42,14 @@ priorities = ['priority:%d' % i for i in range(1,26)]
 
 issues = jira.search_issues('status = Done and resolutiondate >= "2017-11-01" and resolutionDate < "2017-12-01" AND type = story AND labels in (' + ','.join(priorities) + ')')
 
-priority_count, priority_story_points = get_priority_stats(issues, story_point_field)
+priority_count, priority_story_points, no_priority_stories = get_priority_stats(issues, story_point_field)
 
 print 'Priority counts'
 print_dict(priority_count)
 
 print 'Priority story points'
 print_dict(priority_story_points)
+
+print 'No priorities'
+for issue in no_priority_stories:
+    print "\t", issue, issue.fields.summary
