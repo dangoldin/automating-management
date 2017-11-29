@@ -30,8 +30,9 @@ def get_priority_stats(issues, story_point_field):
         for label in issue.fields.labels:
             if 'priority:' in label:
                 priority = int(label.split(':')[1])
-                story_points = getattr(issue.fields, story_point_field, 0.0)
-                if story_points is None:
+                try:
+                    story_points = float(getattr(issue.fields, story_point_field))
+                except:
                     story_points = 0.0
                 priority_count.update([priority])
                 priority_story_points[priority] += float(story_points)
@@ -60,21 +61,39 @@ def analyze_priorities():
     for issue in no_priority_stories:
         print "\t", issue, issue.fields.summary
 
-def analyze_sprint_lag(sprint_field):
+def analyze_sprint_lag(sprint_field, story_point_field):
+    # Very ugly, will clean up
+    MAX_RESULTS = 100
     squad_sprint_counts = defaultdict(list)
-    issues = jira.search_issues('status = Done and resolutiondate >= "2017-11-01" and resolutionDate < "2017-12-01" AND type = story', maxResults=1000)
-    for issue in issues:
-        squad = get_squad(issue)
-        num_sprints = len(getattr(issue.fields, sprint_field))
-        print issue, squad, issue.fields.summary, num_sprints
+    squad_sprint_story_point_sum = defaultdict(float)
+    squad_story_point_sum = defaultdict(float)
+    issues = jira.search_issues('status = Done and resolutiondate >= "2017-10-01" and resolutionDate < "2017-12-01" AND type = story', maxResults=MAX_RESULTS)
+    total = issues.total
+    for page in range(1+total/MAX_RESULTS):
+        # Repeat for now, clean this up later so pagination actually works better
+        print 'Getting page', page
+        issues = jira.search_issues('status = Done and resolutiondate >= "2017-10-01" and resolutionDate < "2017-12-01" AND type = story', maxResults=MAX_RESULTS, startAt=page * MAX_RESULTS)
+        print 'Retrieved', len(issues)
+        for issue in issues:
+            squad = get_squad(issue)
+            num_sprints = len(getattr(issue.fields, sprint_field))
+            story_points = getattr(issue.fields, story_point_field, 0.0)
+            if story_points is None:
+                story_points = 0.0
+            print issue, squad, issue.fields.summary, num_sprints, story_points
 
-        # Has a squad and was actually done via sprint process
-        if squad and num_sprints > 0:
-            squad_sprint_counts[squad].append(num_sprints)
+            # Has a squad and was actually done via sprint process
+            if squad and num_sprints > 0:
+                squad_sprint_counts[squad].append(num_sprints)
+
+                if story_points > 0:
+                    squad_sprint_story_point_sum[squad] += num_sprints * story_points
+                    squad_story_point_sum[squad] += story_points
 
     for squad, counts in squad_sprint_counts.iteritems():
-        print squad, sum(counts)*1.0/len(counts)
+        print squad, sum(counts)*1.0/len(counts), squad_sprint_story_point_sum[squad]/squad_story_point_sum[squad]
 
 if __name__ == '__main__':
     sprint_field = get_custom_field_key('Sprint')
-    analyze_sprint_lag(sprint_field)
+    story_point_field = get_custom_field_key('Story Points')
+    analyze_sprint_lag(sprint_field, story_point_field)
