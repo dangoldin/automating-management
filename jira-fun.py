@@ -72,8 +72,6 @@ class JiraAnalysis():
         return all_issues
 
     def analyze_priorities(self, start_date, end_date):
-        # priorities = ['priority:%d' % i for i in range(1,26)]
-        # issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type = story AND labels in (' + ','.join(priorities) + ')')
         issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type = story and labels = "console"')
         priority_count, priority_story_points, no_priority_stories = self.get_priority_stats(issues)
 
