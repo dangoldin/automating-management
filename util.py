@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 def print_dict(d):
     for key, val in d.iteritems():
         print "\t", key, val
