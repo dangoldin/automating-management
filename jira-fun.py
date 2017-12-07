@@ -110,13 +110,14 @@ class JiraAnalysis():
             print squad, sum(counts)*1.0/len(counts), squad_sprint_story_point_sum[squad]/squad_story_point_sum[squad]
 
     def analyze_story_points(self, start_date, end_date):
-        user_story_point_sum = defaultdict(float)
+        user_story_point_sum = Counter()
         issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type = story')
         for issue in issues:
             story_points = get_or_float_zero(issue.fields, self.story_point_field)
             assignee = issue.fields.assignee if issue.fields.assignee else 'None'
-            user_story_point_sum[assignee] += story_points
-        print_dict(user_story_point_sum)
+            user_story_point_sum.update({ assignee: int(story_points) })
+        for key, val in user_story_point_sum.most_common(100):
+            print key, val
 
 if __name__ == '__main__':
     start_date = sys.argv[1]
