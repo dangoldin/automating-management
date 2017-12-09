@@ -71,6 +71,7 @@ class JiraAnalysis():
         print 'Total retrieved', len(all_issues)
         return all_issues
 
+    # Measure analytics per priority
     def analyze_priorities(self, start_date, end_date):
         issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type = story and labels = "console"')
         priority_count, priority_story_points, no_priority_stories = self.get_priority_stats(issues)
@@ -85,6 +86,7 @@ class JiraAnalysis():
         for issue in no_priority_stories:
             print "\t", issue, issue.fields.summary
 
+    # Measrure # of sprints to do a story
     def analyze_sprint_lag(self, start_date, end_date):
         squad_sprint_counts = defaultdict(list)
         squad_sprint_story_point_sum = defaultdict(float)
@@ -107,6 +109,7 @@ class JiraAnalysis():
         for squad, counts in squad_sprint_counts.iteritems():
             print squad, sum(counts)*1.0/len(counts), squad_sprint_story_point_sum[squad]/squad_story_point_sum[squad]
 
+    # Measrure # story points done per assignee
     def analyze_story_points(self, start_date, end_date):
         user_story_point_sum = Counter()
         issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type = story')
