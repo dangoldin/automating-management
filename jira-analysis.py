@@ -109,7 +109,7 @@ class JiraAnalysis():
         for squad, counts in squad_sprint_counts.iteritems():
             print squad, sum(counts)*1.0/len(counts), squad_sprint_story_point_sum[squad]/squad_story_point_sum[squad]
 
-    # Measrure # story points done per assignee
+    # Measrure # of story points done per assignee
     def analyze_story_points(self, start_date, end_date):
         user_story_point_sum = Counter()
         issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type = story')
