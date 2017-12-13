@@ -37,6 +37,9 @@ class JiraAnalysis():
                     return squad_label
         return None
 
+    def get_issue_type(self, issue):
+        return issue.fields.issuetype.name.lower()
+
     # For a set of issues get stats by priority
     def get_priority_stats(self, issues):
         priority_count = Counter()
@@ -73,7 +76,7 @@ class JiraAnalysis():
 
     # Measure analytics per priority
     def analyze_priorities(self, start_date, end_date):
-        issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type = story and labels = "console"')
+        issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type in ("story", "bug")')
         priority_count, priority_story_points, no_priority_stories = self.get_priority_stats(issues)
 
         print 'Priority counts'
@@ -91,34 +94,42 @@ class JiraAnalysis():
         squad_sprint_counts = defaultdict(list)
         squad_sprint_story_point_sum = defaultdict(float)
         squad_story_point_sum = defaultdict(float)
-        issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type = story')
+        squad_bugs = defaultdict(int)
+        issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type in ("story", "bug")')
         for issue in issues:
             squad = self.get_squad(issue)
             num_sprints = len(getattr(issue.fields, self.sprint_field))
             story_points = get_or_float_zero(issue.fields, self.story_point_field)
-            # print issue, squad, issue.fields.summary, num_sprints, story_points
+            issue_type = self.get_issue_type(issue)
 
             # Has a squad and was actually done via sprint process
-            if squad and num_sprints > 0:
+            if squad and num_sprints > 0 and issue_type == 'story':
                 squad_sprint_counts[squad].append(num_sprints)
 
                 if story_points > 0:
                     squad_sprint_story_point_sum[squad] += num_sprints * story_points
                     squad_story_point_sum[squad] += story_points
 
+            if issue_type == 'bug':
+                squad_bugs[squad] += 1
+
         for squad, counts in squad_sprint_counts.iteritems():
-            print squad, sum(counts)*1.0/len(counts), squad_sprint_story_point_sum[squad]/squad_story_point_sum[squad]
+            print squad, sum(counts)*1.0/len(counts), squad_sprint_story_point_sum[squad]/squad_story_point_sum[squad], squad_bugs[squad]
 
     # Measrure # of story points done per assignee
     def analyze_story_points(self, start_date, end_date):
         user_story_point_sum = Counter()
-        issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type = story')
+        user_bugs = defaultdict(int)
+        issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type in ("story", "bug")')
         for issue in issues:
             story_points = get_or_float_zero(issue.fields, self.story_point_field)
             assignee = issue.fields.assignee if issue.fields.assignee else 'None'
             user_story_point_sum.update({ assignee: int(story_points) })
-        for key, val in user_story_point_sum.most_common(100):
-            print key, val
+            if self.get_issue_type(issue) == 'bug':
+                user_bugs[assignee] += 1
+
+        for user, story_points in user_story_point_sum.most_common(100):
+            print user, story_points, user_bugs[user]
 
 if __name__ == '__main__':
     start_date = sys.argv[1]
