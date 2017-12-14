@@ -11,6 +11,7 @@ from util import print_dict, get_or_float_zero
 
 class JiraAnalysis():
     def __init__(self):
+        self.issue_cache = {}
         self.jira = JIRA(config.JIRA_URL, basic_auth=(config.JIRA_USERNAME, config.JIRA_PASSWORD))
         self.sprint_field = self.get_custom_field_key('Sprint')
         self.story_point_field = self.get_custom_field_key('Story Points')
@@ -60,6 +61,9 @@ class JiraAnalysis():
 
     # Wrap the pagination code so user doesn't have to do it themselves
     def get_issues(self, query):
+        if query in self.issue_cache:
+            return self.issue_cache[query]
+
         all_issues = []
         MAX_RESULTS = 100
         issues = self.jira.search_issues(query, maxResults=MAX_RESULTS)
@@ -72,6 +76,7 @@ class JiraAnalysis():
                 print 'Retrieved', len(issues)
                 all_issues.extend(list(issues))
         print 'Total retrieved', len(all_issues)
+        self.issue_cache[query] = all_issues
         return all_issues
 
     # Measure analytics per priority
