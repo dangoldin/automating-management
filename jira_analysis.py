@@ -38,6 +38,7 @@ class JiraAnalysis():
                     return squad_label
         return None
 
+    # Get issue type, a bit weird since it's off of fields and needs to be converted to string
     def get_issue_type(self, issue):
         return issue.fields.issuetype.name.lower()
 
@@ -79,9 +80,13 @@ class JiraAnalysis():
         self.issue_cache[query] = all_issues
         return all_issues
 
+    # Get all done stories and bugs between a date range
+    def get_issue_query(self, start_date, end_date):
+        return 'status = Done and resolutiondate >= "' + start_date + '" and resolutionDate <= "' + end_date + '" AND type in ("story", "bug")'
+
     # Measure analytics per priority
     def analyze_priorities(self, start_date, end_date):
-        issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type in ("story", "bug")')
+        issues = self.get_issues(self.get_issue_query(start_date, end_date))
         priority_count, priority_story_points, no_priority_stories = self.get_priority_stats(issues)
 
         print 'Priority counts'
@@ -100,7 +105,7 @@ class JiraAnalysis():
         squad_sprint_story_point_sum = defaultdict(float)
         squad_story_point_sum = defaultdict(float)
         squad_bugs = defaultdict(int)
-        issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type in ("story", "bug")')
+        issues = self.get_issues(self.get_issue_query(start_date, end_date))
         for issue in issues:
             squad = self.get_squad(issue)
             num_sprints = len(getattr(issue.fields, self.sprint_field))
@@ -125,7 +130,7 @@ class JiraAnalysis():
     def analyze_story_points(self, start_date, end_date):
         user_story_point_sum = Counter()
         user_bugs = defaultdict(int)
-        issues = self.get_issues('status = Done and resolutiondate >= "' + start_date + '" and resolutionDate < "' + end_date + '" AND type in ("story", "bug")')
+        issues = self.get_issues(self.get_issue_query(start_date, end_date))
         for issue in issues:
             story_points = get_or_float_zero(issue.fields, self.story_point_field)
             assignee = issue.fields.assignee if issue.fields.assignee else 'None'
