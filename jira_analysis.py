@@ -123,8 +123,9 @@ class JiraAnalysis():
             if issue_type == 'bug':
                 squad_bugs[squad] += 1
 
+        print 'Squad\tSprint Lag\tSP Sprint Lag\tBugs'
         for squad, counts in squad_sprint_counts.iteritems():
-            print squad, sum(counts)*1.0/len(counts), squad_sprint_story_point_sum[squad]/squad_story_point_sum[squad], squad_bugs[squad]
+            print squad, '\t', sum(counts)*1.0/len(counts), '\t', squad_sprint_story_point_sum[squad]/squad_story_point_sum[squad], '\t', squad_bugs[squad]
 
     # Measrure # of story points done per assignee
     def analyze_story_points(self, start_date, end_date):
@@ -138,8 +139,9 @@ class JiraAnalysis():
             if self.get_issue_type(issue) == 'bug':
                 user_bugs[assignee] += 1
 
+        print 'User\tSP\tBugs'
         for user, story_points in user_story_point_sum.most_common(100):
-            print user, story_points, user_bugs[user]
+            print user, '\t', story_points, '\t', user_bugs[user]
 
 if __name__ == '__main__':
     start_date = sys.argv[1]
