@@ -152,7 +152,7 @@ if __name__ == '__main__':
     print 'Priority analysis'
     ja.analyze_priorities(start_date, end_date)
 
-    print 'Sprint lag analysis'
+    print 'Sprints per story'
     ja.analyze_sprint_lag(start_date, end_date)
 
     print 'Story point analysis'
