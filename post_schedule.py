@@ -1,17 +1,37 @@
 #! /usr/bin/env python
 
+import os
 import sys
 import config
+import logging
+from datetime import datetime
+
 from slack_helper import SlackHelper
 from sheet_helper import GSheetHelper
 
-from datetime import datetime
+FORMAT = '%(asctime)-15s %(message)s'
+logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+logger = logging.getLogger('post-schedule')
 
-sh = SlackHelper(config.SLACK_TOKEN)
-gh = GSheetHelper(config.CREDENTIALS_FILE)
+CREDENTIALS_FILE = os.environ.get('CREDENTIALS_FILE', 'credentials.json')
+WORKBOOK = os.environ.get('WORKBOOK', None)
+WORKSHEET_META_TAB = os.environ.get('WORKSHEET_META_TAB', None)
+SLACK_TOKEN = os.environ.get('SLACK_TOKEN', None)
+SLACK_USERNAME = os.environ.get('SLACK_USERNAME', None)
+SLACK_ICON_URL = os.environ.get('SLACK_ICON_URL', None)
+
+required_variables = 'CREDENTIALS_FILE WORKBOOK WORKSHEET_META_TAB SLACK_TOKEN SLACK_USERNAME SLACK_ICON_URL'.split(' ')
+
+for variable in required_variables:
+    if eval(variable) is None:
+        logger.error('Missing ' + variable)
+        exit(1)
+
+sh = SlackHelper(SLACK_TOKEN)
+gh = GSheetHelper(CREDENTIALS_FILE)
 
 def get_meta_rows():
-    return gh.get_rows(config.WORKBOOK, config.WORKSHEET_META_TAB)
+    return gh.get_rows(WORKBOOK, WORKSHEET_META_TAB)
 
 def is_current(calendar_type, today, prev_date, curr_date, next_date):
     if calendar_type == 'Current' and today >= curr_date and today < next_date:
@@ -30,13 +50,20 @@ if __name__ == '__main__':
     for row in meta_rows:
         tab, message, date_col, user_cols, message_col, calendar_type, slack_channels, active = \
         [row[x] for x in ('Tab', 'Message', 'Date Column', 'User Columns', 'Message Col', 'Calendar Type', 'Slack Channels', 'Active')]
-        print tab, message, date_col, user_cols, message_col, calendar_type, slack_channels, active
+        logger.info({   'Tab': tab,
+                        'Message': message,
+                        'Date Col': date_col,
+                        'User Cols': user_cols,
+                        'Message Col': message_col,
+                        'Calendar Type': calendar_type,
+                        'Slach Channels': slack_channels,
+                        'Active': active})
 
         if not bool(active):
             continue
 
         today = datetime.today()
-        all_rows = gh.get_rows(config.WORKBOOK, tab)
+        all_rows = gh.get_rows(WORKBOOK, tab)
         for i, rowmap in enumerate(all_rows):
             current = False
             if i+1 < len(all_rows):
@@ -50,7 +77,7 @@ if __name__ == '__main__':
 
                 current = is_current(calendar_type, today, prev_date, curr_date, next_date)
                 if current:
-                    print 'Current:', rowmap[date_col]
+                    logger.info('Current:' + rowmap[date_col])
 
             if current:
                 msg = '*' + message + ': ' + rowmap[date_col] + '*\n'
@@ -69,4 +96,4 @@ if __name__ == '__main__':
             slack_channels = [s.strip() for s in slack_channels.split(',')]
 
         for slack_channel in slack_channels:
-            sh.send_message(msg, config.USERNAME, slack_channel, config.ICON_URL)
+            sh.send_message(msg, SLACK_USERNAME, slack_channel, SLACK_ICON_URL)

@@ -91,6 +91,7 @@ ENV/
 # Private files
 credentials.json
 config.py
+config.env
 
 # Temp files
 *~
