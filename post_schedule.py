@@ -2,7 +2,6 @@
 
 import os
 import sys
-import config
 import logging
 from datetime import datetime
 
