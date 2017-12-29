@@ -1,0 +1,9 @@
+version: '3.4'
+services:
+  gsheet-slack:
+    env_file:
+      - config.env
+    image: gsheet-slack:dev
+    container_name: gsheet-slack
+    build:
+      context: .
