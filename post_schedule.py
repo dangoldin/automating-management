@@ -12,22 +12,19 @@ FORMAT = '%(asctime)-15s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger('post-schedule')
 
-CREDENTIALS_FILE = os.environ.get('CREDENTIALS_FILE', 'credentials.json')
-WORKBOOK = os.environ.get('WORKBOOK', None)
-WORKSHEET_META_TAB = os.environ.get('WORKSHEET_META_TAB', None)
-SLACK_TOKEN = os.environ.get('SLACK_TOKEN', None)
-SLACK_USERNAME = os.environ.get('SLACK_USERNAME', None)
-SLACK_ICON_URL = os.environ.get('SLACK_ICON_URL', None)
-
-required_variables = 'CREDENTIALS_FILE WORKBOOK WORKSHEET_META_TAB SLACK_TOKEN SLACK_USERNAME SLACK_ICON_URL'.split(' ')
-
-for variable in required_variables:
-    if eval(variable) is None:
-        logger.error('Missing ' + variable)
-        exit(1)
-
-sh = SlackHelper(SLACK_TOKEN)
-gh = GSheetHelper(CREDENTIALS_FILE)
+def read_config_file(filepath):
+    out = {}
+    if os.path.exists(filepath):
+        logger.info('Found config file at ' + filepath)
+        with open(filepath, 'r') as f:
+            data = f.read()
+            for line in data.split("\n"):
+                if '=' in line:
+                    key, val = line.split('=')
+                    out[key] = val
+    else:
+        logger.warn('Unable to find config file at ' + filepath)
+    return out
 
 def get_meta_rows():
     return gh.get_rows(WORKBOOK, WORKSHEET_META_TAB)
@@ -43,6 +40,25 @@ if __name__ == '__main__':
     testing_slack_channel = None
     if len(sys.argv) > 1:
         testing_slack_channel = sys.argv[1]
+
+    config_data = read_config_file('config.env')
+
+    CREDENTIALS_FILE = os.environ.get('CREDENTIALS_FILE', config_data.get('CREDENTIALS_FILE', 'credentials.json'))
+    WORKBOOK = os.environ.get('WORKBOOK', config_data.get('WORKBOOK', None))
+    WORKSHEET_META_TAB = os.environ.get('WORKSHEET_META_TAB', config_data.get('WORKSHEET_META_TAB', None))
+    SLACK_TOKEN = os.environ.get('SLACK_TOKEN', config_data.get('SLACK_TOKEN', None))
+    SLACK_USERNAME = os.environ.get('SLACK_USERNAME', config_data.get('SLACK_USERNAME', None))
+    SLACK_ICON_URL = os.environ.get('SLACK_ICON_URL', config_data.get('SLACK_ICON_URL', None))
+
+    required_variables = 'CREDENTIALS_FILE WORKBOOK WORKSHEET_META_TAB SLACK_TOKEN SLACK_USERNAME SLACK_ICON_URL'.split(' ')
+
+    for variable in required_variables:
+        if eval(variable) is None:
+            logger.error('Missing ' + variable)
+            exit(1)
+
+    sh = SlackHelper(SLACK_TOKEN)
+    gh = GSheetHelper(CREDENTIALS_FILE)
 
     meta_rows = get_meta_rows()
 
