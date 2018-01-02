@@ -1,9 +1,9 @@
 version: '3.4'
 services:
-  gsheet-slack:
+  post_schedule:
     env_file:
       - config.env
-    image: gsheet-slack:dev
-    container_name: gsheet-slack
+    image: post_schedule:dev
+    container_name: post_schedule
     build:
-      context: .
+      context: post_schedule/.
