@@ -36,5 +36,6 @@ I'm still getting familiar with Docker but you should be able to get everythong 
 
 1. git clone the repo
 2. cd into the directory
-3. set the config files (config.env and config.py)
-4.
+3. set the config file (config.env) or the environment variables
+4. build docker (docker-compose build)
+5. run the script within docker (docker-compose run automating_management python /automating_management/post_schedule.py '#tmp-slack-api' or docker-compose run automating_management python /automating_management/jira_analysis.py 2017-10-01 2017-12-31)
