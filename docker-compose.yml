@@ -1,9 +1,9 @@
 version: '3.4'
 services:
-  post_schedule:
+  automating_management:
     env_file:
       - config.env
-    image: post_schedule:dev
-    container_name: post_schedule
+    image: automating_management:dev
+    container_name: automating_management
     build:
-      context: post_schedule/.
+      context: .

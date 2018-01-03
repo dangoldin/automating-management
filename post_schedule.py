@@ -5,11 +5,8 @@ import sys
 import logging
 from datetime import datetime
 
-# Add parent folder so we can reference util
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from util.slack_helper import SlackHelper
-from util.sheet_helper import GSheetHelper
+from slack_helper import SlackHelper
+from sheet_helper import GSheetHelper
 
 FORMAT = '%(asctime)-15s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)

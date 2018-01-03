@@ -16,16 +16,17 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Upgrade to latest version
-RUN pip install --upgrade pip
-RUN pip install --upgrade virtualenv
-RUN pip install --upgrade setuptools
+RUN pip install --upgrade pip virtualenv setuptools
 
-ADD . /gsheet-slack
-WORKDIR /gsheet-slack
+# Do requirements first for docker caching
+COPY requirements.txt /automating_management/
 
 # Download packages
-RUN pip install -r requirements.txt
+RUN pip install -r /automating_management/requirements.txt
 
-RUN chmod +x /gsheet-slack/post_schedule.py
+COPY . /automating_management
+WORKDIR /automating_management
 
-CMD ["python", "/gsheet-slack/post_schedule.py", "#tmp-slack-api"]
+# Run later
+# docker-compose run automating_management python /automating_management/post_schedule.py '#tmp-slack-api'
+# docker-compose run automating_management python /automating_management/jira_analysis.py 2017-10-01 2017-12-31
