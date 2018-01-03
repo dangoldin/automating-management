@@ -8,23 +8,11 @@ from datetime import datetime
 from slack_helper import SlackHelper
 from sheet_helper import GSheetHelper
 
+from util import get_conf_or_env, read_config_file
+
 FORMAT = '%(asctime)-15s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger('post-schedule')
-
-def read_config_file(filepath):
-    out = {}
-    if os.path.exists(filepath):
-        logger.info('Found config file at ' + filepath)
-        with open(filepath, 'r') as f:
-            data = f.read()
-            for line in data.split("\n"):
-                if '=' in line:
-                    key, val = line.split('=')
-                    out[key] = val
-    else:
-        logger.warn('Unable to find config file at ' + filepath)
-    return out
 
 def get_meta_rows():
     return gh.get_rows(WORKBOOK, WORKSHEET_META_TAB)
@@ -43,12 +31,12 @@ if __name__ == '__main__':
 
     config_data = read_config_file('config.env')
 
-    CREDENTIALS_FILE = os.environ.get('CREDENTIALS_FILE', config_data.get('CREDENTIALS_FILE', 'credentials.json'))
-    WORKBOOK = os.environ.get('WORKBOOK', config_data.get('WORKBOOK', None))
-    WORKSHEET_META_TAB = os.environ.get('WORKSHEET_META_TAB', config_data.get('WORKSHEET_META_TAB', None))
-    SLACK_TOKEN = os.environ.get('SLACK_TOKEN', config_data.get('SLACK_TOKEN', None))
-    SLACK_USERNAME = os.environ.get('SLACK_USERNAME', config_data.get('SLACK_USERNAME', None))
-    SLACK_ICON_URL = os.environ.get('SLACK_ICON_URL', config_data.get('SLACK_ICON_URL', None))
+    CREDENTIALS_FILE = get_conf_or_env('CREDENTIALS_FILE', config_data, 'credentials.json')
+    WORKBOOK = get_conf_or_env('WORKBOOK', config_data)
+    WORKSHEET_META_TAB = get_conf_or_env('WORKSHEET_META_TAB', config_data)
+    SLACK_TOKEN = get_conf_or_env('SLACK_TOKEN', config_data)
+    SLACK_USERNAME = get_conf_or_env('SLACK_USERNAME', config_data)
+    SLACK_ICON_URL = get_conf_or_env('SLACK_ICON_URL', config_data)
 
     required_variables = 'CREDENTIALS_FILE WORKBOOK WORKSHEET_META_TAB SLACK_TOKEN SLACK_USERNAME SLACK_ICON_URL'.split(' ')
 

@@ -1,18 +1,23 @@
 #! /usr/bin/env python
 
+import os
 import sys
+import logging
 from collections import Counter, defaultdict
 from jira import JIRA
 from math import ceil
 
-import config
+from util import print_dict, get_or_float_zero, get_conf_or_env, read_config_file
 
-from util import print_dict, get_or_float_zero
+FORMAT = '%(asctime)-15s %(message)s'
+logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+logger = logging.getLogger('post-schedule')
 
 class JiraAnalysis():
-    def __init__(self):
+    def __init__(self, jira_url, jira_username, jira_password, jira_squad_labels):
         self.issue_cache = {}
-        self.jira = JIRA(config.JIRA_URL, basic_auth=(config.JIRA_USERNAME, config.JIRA_PASSWORD))
+        self.jira = JIRA(jira_url, basic_auth=(jira_username, jira_password))
+        self.jira_squad_labels = jira_squad_labels
         self.sprint_field = self.get_custom_field_key('Sprint')
         self.story_point_field = self.get_custom_field_key('Story Points')
 
@@ -33,7 +38,7 @@ class JiraAnalysis():
     # Retrieve the squad for an issue - based on labels
     def get_squad(self, issue):
         for label in issue.fields.labels:
-            for squad_label in config.SQUAD_LABELS:
+            for squad_label in self.jira_squad_labels:
                 if squad_label.lower() in label.lower():
                     return squad_label
         return None
@@ -72,11 +77,11 @@ class JiraAnalysis():
         all_issues.extend(list(issues))
         if total > MAX_RESULTS: # Actually need to paginate
             for page in range(1, int(ceil(1.0*total/MAX_RESULTS))):
-                print 'Getting page', page
+                logger.info('Getting page %s', page)
                 issues = self.jira.search_issues(query, maxResults=MAX_RESULTS, startAt=page * MAX_RESULTS)
-                print 'Retrieved', len(issues)
+                logger.info('Retrieved %s issues', len(issues))
                 all_issues.extend(list(issues))
-        print 'Total retrieved', len(all_issues)
+        logger.info('Total retrieved %s', len(all_issues))
         self.issue_cache[query] = all_issues
         return all_issues
 
@@ -89,15 +94,15 @@ class JiraAnalysis():
         issues = self.get_issues(self.get_issue_query(start_date, end_date))
         priority_count, priority_story_points, no_priority_stories = self.get_priority_stats(issues)
 
-        print 'Priority counts'
-        print_dict(priority_count)
+        logger.info('Priority counts')
+        logger.info(print_dict(priority_count))
 
-        print 'Priority story points'
-        print_dict(priority_story_points)
+        logger.info('Priority story points')
+        logger.info(print_dict(priority_story_points))
 
-        print 'No priorities'
+        logger.info('No priorities')
         for issue in no_priority_stories:
-            print "\t", issue, issue.fields.summary
+            logger.info("\t %s %s", issue, issue.fields.summary)
 
     # Measrure # of sprints to do a story
     def analyze_sprint_lag(self, start_date, end_date):
@@ -123,9 +128,9 @@ class JiraAnalysis():
             if issue_type == 'bug':
                 squad_bugs[squad] += 1
 
-        print 'Squad\tSprint Lag\tSP Sprint Lag\tBugs'
+        logger.info('Squad\tSprint Lag\tSP Sprint Lag\tBugs')
         for squad, counts in squad_sprint_counts.iteritems():
-            print squad, '\t', sum(counts)*1.0/len(counts), '\t', squad_sprint_story_point_sum[squad]/squad_story_point_sum[squad], '\t', squad_bugs[squad]
+            logger.info('%s\t%s\t%s\t%s', squad, sum(counts)*1.0/len(counts), squad_sprint_story_point_sum[squad]/squad_story_point_sum[squad], squad_bugs[squad])
 
     # Measrure # of story points done per assignee
     def analyze_story_points(self, start_date, end_date):
@@ -139,21 +144,37 @@ class JiraAnalysis():
             if self.get_issue_type(issue) == 'bug':
                 user_bugs[assignee] += 1
 
-        print 'User\tSP\tBugs'
+        logger.info('User\tSP\tBugs')
         for user, story_points in user_story_point_sum.most_common(100):
-            print user, '\t', story_points, '\t', user_bugs[user]
+            logger.info('%s\t%s\t%s', user, story_points, user_bugs[user])
 
 if __name__ == '__main__':
     start_date = sys.argv[1]
     end_date = sys.argv[2]
 
-    ja = JiraAnalysis()
+    config_data = read_config_file('config.env')
 
-    print 'Priority analysis'
+    JIRA_URL = get_conf_or_env('JIRA_URL', config_data)
+    JIRA_USERNAME = get_conf_or_env('JIRA_USERNAME', config_data)
+    JIRA_PASSWORD = get_conf_or_env('JIRA_PASSWORD', config_data)
+    JIRA_SQUAD_LABELS = get_conf_or_env('JIRA_SQUAD_LABELS', config_data)
+
+    required_variables = 'JIRA_URL JIRA_USERNAME JIRA_PASSWORD JIRA_SQUAD_LABELS'.split(' ')
+
+    for variable in required_variables:
+        if eval(variable) is None:
+            logger.error('Missing ' + variable)
+            exit(1)
+
+    JIRA_SQUAD_LABELS = JIRA_SQUAD_LABELS.split(',')
+
+    ja = JiraAnalysis(JIRA_URL, JIRA_USERNAME, JIRA_PASSWORD, JIRA_SQUAD_LABELS)
+
+    logger.info('Priority analysis')
     ja.analyze_priorities(start_date, end_date)
 
-    print 'Sprints per story'
+    logger.info('Sprints per story')
     ja.analyze_sprint_lag(start_date, end_date)
 
-    print 'Story point analysis'
+    logger.info('Story point analysis')
     ja.analyze_story_points(start_date, end_date)

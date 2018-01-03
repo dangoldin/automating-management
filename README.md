@@ -29,3 +29,12 @@ You can use jira_analysis.py to analyze stories done over a date range. The anal
 - [ ] Visualizations
 - [ ] Trends
 - [ ] GitHub integration
+
+## Getting started
+
+I'm still getting familiar with Docker but you should be able to get everythong to run through the usual steps:
+
+1. git clone the repo
+2. cd into the directory
+3. set the config files (config.env and config.py)
+4.
