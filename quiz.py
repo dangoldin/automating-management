@@ -34,4 +34,4 @@ if __name__ == '__main__':
     sh.send_message(msg, 'TEST TEST', '#tmp-slack-api', 'http://dan.triplelift.net/q.png')
 
     msg = '/poll "' + row['Question'] + '" ' + ' '.join('"' + x + '"' for x in answer_choices)
-    sh.send_message(msg, 'TEST TEST', '#tmp-slack-api', 'http://dan.triplelift.net/q.png')
+    sh.execute_command(msg, 'TEST TEST', '#tmp-slack-api', 'http://dan.triplelift.net/q.png')
