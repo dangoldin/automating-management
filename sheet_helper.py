@@ -6,7 +6,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 class GSheetHelper:
     def __init__(self, credentials_file):
         scope = ['https://spreadsheets.google.com/feeds']
-        credentials = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(credentials_file, scope)
         self.gc = gspread.authorize(credentials)
 
     def get_rows(self, workbook, worksheet):
