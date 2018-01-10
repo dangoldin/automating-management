@@ -47,6 +47,10 @@ class JiraAnalysis():
     def get_issue_type(self, issue):
         return issue.fields.issuetype.name.lower()
 
+    # Get description from an issue
+    def get_description(self, issue):
+        return issue.fields.description
+
     # For a set of issues get stats by priority
     def get_priority_stats(self, issues):
         priority_count = Counter()
@@ -88,6 +92,15 @@ class JiraAnalysis():
     # Get all done stories and bugs between a date range
     def get_issue_query(self, start_date, end_date):
         return 'status = Done and resolutiondate >= "' + start_date + '" and resolutionDate <= "' + end_date + '" AND type in ("story", "bug")'
+
+    def analyze_descriptions(self, start_date, end_date):
+        issues = self.get_issues(self.get_issue_query(start_date, end_date))
+        words = []
+        for issue in issues:
+            desc = self.get_description(issue)
+            if desc is not None:
+                words.extend(desc.split(' '))
+        return words
 
     # Measure analytics per priority
     def analyze_priorities(self, start_date, end_date):
@@ -169,6 +182,10 @@ if __name__ == '__main__':
     JIRA_SQUAD_LABELS = JIRA_SQUAD_LABELS.split(',')
 
     ja = JiraAnalysis(JIRA_URL, JIRA_USERNAME, JIRA_PASSWORD, JIRA_SQUAD_LABELS)
+
+    logger.info('Get description')
+    words = ja.analyze_descriptions(start_date, end_date)
+    print u' '.join(words).encode('utf-8')
 
     logger.info('Priority analysis')
     ja.analyze_priorities(start_date, end_date)
