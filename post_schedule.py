@@ -3,6 +3,7 @@
 import os
 import sys
 import logging
+import random
 from datetime import datetime
 
 from slack_helper import SlackHelper
@@ -14,8 +15,19 @@ FORMAT = '%(asctime)-15s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger('post-schedule')
 
-def get_meta_rows():
-    return gh.get_rows(WORKBOOK, WORKSHEET_META_TAB)
+def get_meta_rows(workbook, meta_tab):
+    return gh.get_rows(workbook, meta_tab)
+
+def get_people_phone_numbers(workbook, people_tab):
+    rows = gh.get_rows(workbook, people_tab)
+    people = {}
+    for row in rows:
+        people[row['Name'].lower()] = row['Phone']
+    return people
+
+# TODO: Support non US
+def format_phone_number(phone):
+    return phone[:3] + '.' + phone[3:6] + '.' + phone[6:]
 
 def is_current(calendar_type, today, prev_date, curr_date, next_date):
     if calendar_type == 'Current' and today >= curr_date and today < next_date:
@@ -23,6 +35,10 @@ def is_current(calendar_type, today, prev_date, curr_date, next_date):
     elif calendar_type == 'Next' and today >= prev_date and today < curr_date:
         return True
     return False
+
+def get_random_emoji():
+    all_emoji = sh.get_emoji()['emoji']
+    return random.choice(all_emoji.keys())
 
 if __name__ == '__main__':
     testing_slack_channel = None
@@ -37,6 +53,7 @@ if __name__ == '__main__':
     SLACK_TOKEN = get_conf_or_env('SLACK_TOKEN', config_data)
     SLACK_USERNAME = get_conf_or_env('SLACK_USERNAME', config_data)
     SLACK_ICON_URL = get_conf_or_env('SLACK_ICON_URL', config_data)
+    WORKSHEET_PEOPLE_TAB = get_conf_or_env('WORKSHEET_PEOPLE_TAB', config_data)
 
     required_variables = 'CREDENTIALS_FILE WORKBOOK WORKSHEET_META_TAB SLACK_TOKEN SLACK_USERNAME SLACK_ICON_URL'.split(' ')
 
@@ -48,11 +65,20 @@ if __name__ == '__main__':
     sh = SlackHelper(SLACK_TOKEN)
     gh = GSheetHelper(CREDENTIALS_FILE)
 
-    meta_rows = get_meta_rows()
+    people_phone_numbers = get_people_phone_numbers(WORKBOOK, WORKSHEET_PEOPLE_TAB)
+
+    meta_rows = get_meta_rows(WORKBOOK, WORKSHEET_META_TAB)
+
+    print meta_rows
 
     for row in meta_rows:
-        tab, message, date_col, user_cols, message_col, calendar_type, slack_channels, active = \
-        [row[x] for x in ('Tab', 'Message', 'Date Column', 'User Columns', 'Message Col', 'Calendar Type', 'Slack Channels', 'Active')]
+        tab, message, date_col, user_cols, message_col, calendar_type, slack_channels, active, ack, include_phone = \
+        [row[x] for x in ('Tab', 'Message', 'Date Column', 'User Columns', 'Message Col', 'Calendar Type', 'Slack Channels', 'Active', 'Acknowledge', 'Include Phone')]
+
+        active = active == '1'
+        ack = ack == '1'
+        include_phone = include_phone == '1'
+
         logger.info({   'Tab': tab,
                         'Message': message,
                         'Date Col': date_col,
@@ -60,9 +86,11 @@ if __name__ == '__main__':
                         'Message Col': message_col,
                         'Calendar Type': calendar_type,
                         'Slach Channels': slack_channels,
-                        'Active': active})
+                        'Active': active,
+                        'Acknowledge': ack,
+                        'Include Phone': include_phone,})
 
-        if not bool(active):
+        if not active:
             continue
 
         today = datetime.today()
@@ -91,12 +119,23 @@ if __name__ == '__main__':
                 for user_col in user_cols.split(','):
                     user_col = user_col.strip()
                     if user_col and rowmap[user_col]:
-                        msg += user_col + ': ' + '@' + sh.get_username_for_fullname(rowmap[user_col]) + '\n'
+                        user_name = rowmap[user_col].lower()
+                        if include_phone:
+                            phone_number = format_phone_number(people_phone_numbers[user_name])
+                        else:
+                            phone_number = ''
+                        msg += user_col + ': ' + '@' + sh.get_username_for_fullname(user_name) + ' ' + phone_number + '\n'
 
         if testing_slack_channel is not None:
             slack_channels = [ testing_slack_channel ]
         else:
             slack_channels = [s.strip() for s in slack_channels.split(',')]
 
-        for slack_channel in slack_channels:
-            sh.send_message(msg, SLACK_USERNAME, slack_channel, SLACK_ICON_URL)
+        for idx, slack_channel in enumerate(slack_channels):
+            msg_to_send = msg
+
+            # Only ack first one
+            if idx == 0 and ack:
+                msg_to_send += 'If you were mentioned, please acknowledge by reacting to this message with a :' + get_random_emoji() + ':\n'
+
+            sh.send_message(msg_to_send, SLACK_USERNAME, slack_channel, SLACK_ICON_URL)

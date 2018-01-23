@@ -58,3 +58,8 @@ class SlackHelper:
         user_ids = [user['id'] for user in self.user_map.values()]
 
         return [user for user in my_channel[0]['members'] if user in user_ids]
+
+    def get_emoji(self):
+        return self.sc.api_call(
+            'emoji.list',
+            )
