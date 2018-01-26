@@ -93,7 +93,8 @@ class JiraAnalysis():
     def get_issue_query(self, start_date, end_date):
         return 'status = Done and resolutiondate >= "' + start_date + '" and resolutionDate <= "' + end_date + '" AND type in ("story", "bug")'
 
-    def analyze_descriptions(self, start_date, end_date):
+    # Just get the list of words
+    def get_descriptions_words(self, start_date, end_date):
         issues = self.get_issues(self.get_issue_query(start_date, end_date))
         words = []
         for issue in issues:
@@ -184,7 +185,7 @@ if __name__ == '__main__':
     ja = JiraAnalysis(JIRA_URL, JIRA_USERNAME, JIRA_PASSWORD, JIRA_SQUAD_LABELS)
 
     logger.info('Get description')
-    words = ja.analyze_descriptions(start_date, end_date)
+    words = ja.get_descriptions_words(start_date, end_date)
     print u' '.join(words).encode('utf-8')
 
     logger.info('Priority analysis')
