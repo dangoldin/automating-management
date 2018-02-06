@@ -59,6 +59,7 @@ class JiraAnalysis():
         for issue in issues:
             had_label = False
             for label in issue.fields.labels:
+                # TODO: Update this for other formats
                 if 'priority:' in label:
                     priority = int(label.split(':')[1])
                     story_points = get_or_float_zero(issue.fields, self.story_point_field)
