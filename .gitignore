@@ -98,3 +98,6 @@ config.env
 
 # Project files
 .vscode/
+
+# Generated files
+issues.csv

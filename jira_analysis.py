@@ -3,6 +3,8 @@
 import os
 import sys
 import logging
+import csv
+
 from collections import Counter, defaultdict
 from jira import JIRA
 from math import ceil
@@ -39,7 +41,7 @@ class JiraAnalysis():
     def get_squad(self, issue):
         for label in issue.fields.labels:
             for squad_label in self.jira_squad_labels:
-                if squad_label.lower() in label.lower():
+                if squad_label.lower() == label.lower():
                     return squad_label
         return None
 
@@ -51,22 +53,31 @@ class JiraAnalysis():
     def get_description(self, issue):
         return issue.fields.description
 
+    # Get story points from an issue
+    def get_story_points(self, issue):
+        return get_or_float_zero(issue.fields, self.story_point_field)
+
+    # Get the priority of an issue
+    def get_priority(self, issue):
+        for label in issue.fields.labels:
+            # TODO: Update this for other formats
+            # Take the first label found to avoid double counting
+            if '2018:q1:' in label.lower():
+                return int(label.split(':')[-1])
+        return None
+
     # For a set of issues get stats by priority
     def get_priority_stats(self, issues):
         priority_count = Counter()
         priority_story_points = defaultdict(float)
         no_priority_stories = []
         for issue in issues:
-            had_label = False
-            for label in issue.fields.labels:
-                # TODO: Update this for other formats
-                if 'priority:' in label:
-                    priority = int(label.split(':')[1])
-                    story_points = get_or_float_zero(issue.fields, self.story_point_field)
-                    priority_count.update([priority])
-                    priority_story_points[priority] += float(story_points)
-                    had_label = True
-            if not had_label:
+            priority = self.get_priority(issue)
+            if priority is not None:
+                story_points = self.get_story_points(issue)
+                priority_count.update([priority])
+                priority_story_points[priority] += float(story_points)
+            else:
                 no_priority_stories.append(issue)
         return priority_count, priority_story_points, no_priority_stories
 
@@ -90,6 +101,21 @@ class JiraAnalysis():
         self.issue_cache[query] = all_issues
         return all_issues
 
+    # Clean up and write issues to a CSV
+    def write_issues(self, start_date, end_date, fn):
+        issues = self.get_issues(self.get_issue_query(start_date, end_date))
+        with open(fn, 'w') as f:
+            w = csv.writer(f)
+            w.writerow(["ticket", "summary", "squad", "priority" , "story_points", "type"])
+            for issue in issues:
+                w.writerow([
+                    issue,
+                    issue.fields.summary.encode('utf-8'),
+                    self.get_squad(issue),
+                    self.get_priority(issue),
+                    self.get_story_points(issue),
+                    self.get_issue_type(issue)])
+
     # Get all done stories and bugs between a date range
     def get_issue_query(self, start_date, end_date):
         return 'status = Done and resolutiondate >= "' + start_date + '" and resolutionDate <= "' + end_date + '" AND type in ("story", "bug")'
@@ -110,10 +136,10 @@ class JiraAnalysis():
         priority_count, priority_story_points, no_priority_stories = self.get_priority_stats(issues)
 
         logger.info('Priority counts')
-        logger.info(print_dict(priority_count))
+        logger.info(print_dict(priority_count, '\n'))
 
         logger.info('Priority story points')
-        logger.info(print_dict(priority_story_points))
+        logger.info(print_dict(priority_story_points, '\n'))
 
         logger.info('No priorities')
         for issue in no_priority_stories:
@@ -185,9 +211,12 @@ if __name__ == '__main__':
 
     ja = JiraAnalysis(JIRA_URL, JIRA_USERNAME, JIRA_PASSWORD, JIRA_SQUAD_LABELS)
 
-    logger.info('Get description')
-    words = ja.get_descriptions_words(start_date, end_date)
-    print u' '.join(words).encode('utf-8')
+    # logger.info('Get description')
+    # words = ja.get_descriptions_words(start_date, end_date)
+    # print u' '.join(words).encode('utf-8')
+
+    logger.info('Writing stories to issues.csv')
+    ja.write_issues(start_date, end_date, 'issues.csv')
 
     logger.info('Priority analysis')
     ja.analyze_priorities(start_date, end_date)
