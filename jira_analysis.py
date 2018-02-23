@@ -63,7 +63,10 @@ class JiraAnalysis():
             # TODO: Update this for other formats
             # Take the first label found to avoid double counting
             if '2018:q1:' in label.lower():
-                return int(label.split(':')[-1])
+                try:
+                    return int(label.split(':')[-1])
+                except:
+                    return 100
         return None
 
     # For a set of issues get stats by priority
