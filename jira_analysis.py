@@ -62,12 +62,13 @@ class JiraAnalysis():
         for label in issue.fields.labels:
             # TODO: Update this for other formats
             # Take the first label found to avoid double counting
-            if '2018:q1:' in label.lower():
+            if '2018:q1:' in label.lower() or '2018:q2' in label.lower():
                 try:
                     return int(label.split(':')[-1])
                 except:
                     return 100
-        return None
+        # The Misc priority
+        return 100
 
     # For a set of issues get stats by priority
     def get_priority_stats(self, issues):
@@ -109,7 +110,7 @@ class JiraAnalysis():
         issues = self.get_issues(self.get_issue_query(start_date, end_date))
         with open(fn, 'w') as f:
             w = csv.writer(f)
-            w.writerow(["ticket", "summary", "squad", "priority" , "story_points", "type"])
+            w.writerow(["ticket", "summary", "squad", "priority" , "story_points", "assignee", "resolved_date", "type"])
             for issue in issues:
                 w.writerow([
                     issue,
@@ -117,11 +118,13 @@ class JiraAnalysis():
                     self.get_squad(issue),
                     self.get_priority(issue),
                     self.get_story_points(issue),
+                    issue.fields.assignee if issue.fields.assignee else 'None',
+                    issue.fields.resolutiondate,
                     self.get_issue_type(issue)])
 
     # Get all done stories and bugs between a date range
     def get_issue_query(self, start_date, end_date):
-        return 'status = Done and resolutiondate >= "' + start_date + '" and resolutionDate <= "' + end_date + '" AND type in ("story", "bug")'
+        return 'status = Done and resolutiondate >= "' + start_date + '" and resolutiondate <= "' + end_date + '" AND type in ("story", "bug")'
 
     # Just get the list of words
     def get_descriptions_words(self, start_date, end_date):
@@ -157,7 +160,10 @@ class JiraAnalysis():
         issues = self.get_issues(self.get_issue_query(start_date, end_date))
         for issue in issues:
             squad = self.get_squad(issue)
-            num_sprints = len(getattr(issue.fields, self.sprint_field))
+            try:
+                num_sprints = len(getattr(issue.fields, self.sprint_field))
+            except:
+                num_sprints = 0
             story_points = get_or_float_zero(issue.fields, self.story_point_field)
             issue_type = self.get_issue_type(issue)
 
@@ -180,17 +186,20 @@ class JiraAnalysis():
     def analyze_story_points(self, start_date, end_date):
         user_story_point_sum = Counter()
         user_bugs = defaultdict(int)
+        user_stories = defaultdict(int)
         issues = self.get_issues(self.get_issue_query(start_date, end_date))
         for issue in issues:
             story_points = get_or_float_zero(issue.fields, self.story_point_field)
-            assignee = issue.fields.assignee if issue.fields.assignee else 'None'
+            assignee = str(issue.fields.assignee) if issue.fields.assignee else 'None'
             user_story_point_sum.update({ assignee: int(story_points) })
             if self.get_issue_type(issue) == 'bug':
                 user_bugs[assignee] += 1
+            elif self.get_issue_type(issue) == 'story':
+                user_stories[assignee] += 1
 
-        logger.info('User\tSP\tBugs')
+        logger.info('User\tSP\tStories\tBugs')
         for user, story_points in user_story_point_sum.most_common(100):
-            logger.info('%s\t%s\t%s', user, story_points, user_bugs[user])
+            logger.info('%s\t%s\t%s\t%s', user, story_points, user_stories[user], user_bugs[user])
 
 if __name__ == '__main__':
     start_date = sys.argv[1]

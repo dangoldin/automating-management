@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     meta_rows = get_meta_rows(WORKBOOK, WORKSHEET_META_TAB)
 
-    print meta_rows
+    print(meta_rows)
 
     for row in meta_rows:
         tab, message, date_col, user_cols, message_col, calendar_type, slack_channels, active, ack, include_phone = \
@@ -95,6 +95,7 @@ if __name__ == '__main__':
 
         today = datetime.today()
         all_rows = gh.get_rows(WORKBOOK, tab)
+        msg = ''
         for i, rowmap in enumerate(all_rows):
             current = False
             if i+1 < len(all_rows):
@@ -131,11 +132,14 @@ if __name__ == '__main__':
         else:
             slack_channels = [s.strip() for s in slack_channels.split(',')]
 
-        for idx, slack_channel in enumerate(slack_channels):
-            msg_to_send = msg
+        if len(msg) > 0:
+            for idx, slack_channel in enumerate(slack_channels):
+                msg_to_send = msg
 
-            # Only ack first one
-            if idx == 0 and ack:
-                msg_to_send += 'If you were mentioned, please acknowledge by reacting to this message with a :' + get_random_emoji() + ':\n'
+                # Only ack first one
+                if idx == 0 and ack:
+                    msg_to_send += 'If you were mentioned, please acknowledge by reacting to this message with a :' + get_random_emoji() + ':\n'
 
-            sh.send_message(msg_to_send, SLACK_USERNAME, slack_channel, SLACK_ICON_URL)
+                sh.send_message(msg_to_send, SLACK_USERNAME, slack_channel, SLACK_ICON_URL)
+        else:
+            print('No message for ', tab, message)
