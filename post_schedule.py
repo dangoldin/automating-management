@@ -38,7 +38,7 @@ def is_current(calendar_type, today, prev_date, curr_date, next_date):
 
 def get_random_emoji():
     all_emoji = sh.get_emoji()['emoji']
-    return random.choice(all_emoji.keys())
+    return random.choice(list(all_emoji.keys()))
 
 if __name__ == '__main__':
     testing_slack_channel = None

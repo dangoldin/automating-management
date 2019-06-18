@@ -33,7 +33,6 @@ PyJWT==1.7.1
 pylint==1.7.4
 pyparsing==2.1.10
 python-dateutil==2.5.3
-rangeset==0.0.5
 requests==2.21.0
 requests-oauthlib==1.2.0
 requests-toolbelt==0.8.0
