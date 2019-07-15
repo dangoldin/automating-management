@@ -125,6 +125,11 @@ if __name__ == '__main__':
                             phone_number = format_phone_number(people_phone_numbers[user_name])
                         else:
                             phone_number = ''
+                        try:
+                            slack_username = sh.get_username_for_fullname(user_name)
+                        except:
+                            print('Failed to get Slack username for ' + user_name)
+                            exit(1)
                         msg += user_col + ': ' + '@' + sh.get_username_for_fullname(user_name) + ' ' + phone_number + '\n'
 
         if testing_slack_channel is not None:
