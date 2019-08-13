@@ -16,9 +16,9 @@ logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger('post-schedule')
 
 class JiraAnalysis():
-    def __init__(self, jira_url, jira_username, jira_password, jira_squad_labels):
+    def __init__(self, jira_url, jira_username, jira_token, jira_squad_labels):
         self.issue_cache = {}
-        self.jira = JIRA(jira_url, basic_auth=(jira_username, jira_password))
+        self.jira = JIRA(jira_url, basic_auth=(jira_username, jira_token))
         self.jira_squad_labels = jira_squad_labels
         self.sprint_field = self.get_custom_field_key('Sprint')
         self.story_point_field = self.get_custom_field_key('Story Points')
@@ -124,7 +124,7 @@ class JiraAnalysis():
 
     # Get all done stories and bugs between a date range
     def get_issue_query(self, start_date, end_date):
-        return 'status = Done and resolutiondate >= "' + start_date + '" and resolutiondate <= "' + end_date + '" AND type in ("story", "bug")'
+        return 'project = "TL" and status = Done and resolutiondate >= "' + start_date + '" and resolutiondate <= "' + end_date + '" AND type in ("story", "bug", "task", "spike", "access")'
 
     # Just get the list of words
     def get_descriptions_words(self, start_date, end_date):
@@ -179,27 +179,27 @@ class JiraAnalysis():
                 squad_bugs[squad] += 1
 
         logger.info('Squad\tSprint Lag\tSP Sprint Lag\tBugs')
-        for squad, counts in squad_sprint_counts.iteritems():
+        for squad, counts in squad_sprint_counts.items():
             logger.info('%s\t%s\t%s\t%s', squad, sum(counts)*1.0/len(counts), squad_sprint_story_point_sum[squad]/squad_story_point_sum[squad], squad_bugs[squad])
 
-    # Measrure # of story points done per assignee
+    # Measure # of story points done per assignee
     def analyze_story_points(self, start_date, end_date):
         user_story_point_sum = Counter()
-        user_bugs = defaultdict(int)
-        user_stories = defaultdict(int)
+        user_data = {}
         issues = self.get_issues(self.get_issue_query(start_date, end_date))
         for issue in issues:
             story_points = get_or_float_zero(issue.fields, self.story_point_field)
             assignee = str(issue.fields.assignee) if issue.fields.assignee else 'None'
             user_story_point_sum.update({ assignee: int(story_points) })
-            if self.get_issue_type(issue) == 'bug':
-                user_bugs[assignee] += 1
-            elif self.get_issue_type(issue) == 'story':
-                user_stories[assignee] += 1
+            if assignee not in user_data:
+                user_data[assignee] = defaultdict(int)
+            issue_type = self.get_issue_type(issue)
+            user_data[assignee][issue_type + '_cnt'] += 1
+            user_data[assignee][issue_type + '_story_points'] += int(story_points)
 
         logger.info('User\tSP\tStories\tBugs')
         for user, story_points in user_story_point_sum.most_common(100):
-            logger.info('%s\t%s\t%s\t%s', user, story_points, user_stories[user], user_bugs[user])
+            logger.info('%s\t%s\t%s', user, story_points, user_data[user])
 
 if __name__ == '__main__':
     start_date = sys.argv[1]
@@ -209,10 +209,10 @@ if __name__ == '__main__':
 
     JIRA_URL = get_conf_or_env('JIRA_URL', config_data)
     JIRA_USERNAME = get_conf_or_env('JIRA_USERNAME', config_data)
-    JIRA_PASSWORD = get_conf_or_env('JIRA_PASSWORD', config_data)
+    JIRA_TOKEN = get_conf_or_env('JIRA_TOKEN', config_data)
     JIRA_SQUAD_LABELS = get_conf_or_env('JIRA_SQUAD_LABELS', config_data)
 
-    required_variables = 'JIRA_URL JIRA_USERNAME JIRA_PASSWORD JIRA_SQUAD_LABELS'.split(' ')
+    required_variables = 'JIRA_URL JIRA_USERNAME JIRA_TOKEN JIRA_SQUAD_LABELS'.split(' ')
 
     for variable in required_variables:
         if eval(variable) is None:
@@ -221,7 +221,7 @@ if __name__ == '__main__':
 
     JIRA_SQUAD_LABELS = JIRA_SQUAD_LABELS.split(',')
 
-    ja = JiraAnalysis(JIRA_URL, JIRA_USERNAME, JIRA_PASSWORD, JIRA_SQUAD_LABELS)
+    ja = JiraAnalysis(JIRA_URL, JIRA_USERNAME, JIRA_TOKEN, JIRA_SQUAD_LABELS)
 
     # logger.info('Get description')
     # words = ja.get_descriptions_words(start_date, end_date)

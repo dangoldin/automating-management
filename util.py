@@ -10,7 +10,7 @@ logger = logging.getLogger('util')
 # Iterate through key/vals in dictionary and print
 def print_dict(d, delim = '\t'):
     final_str = ''
-    for key, val in d.iteritems():
+    for key, val in d.items():
         final_str += delim + ' ' + str(key) + ' ' + str(val)
     return final_str
 
