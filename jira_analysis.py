@@ -180,7 +180,10 @@ class JiraAnalysis():
 
         logger.info('Team\tSprint Lag\tSP Sprint Lag\tBugs')
         for team, counts in team_sprint_counts.items():
-            logger.info('%s\t%s\t%s\t%s', team, sum(counts)*1.0/len(counts), team_sprint_story_point_sum[team]/team_story_point_sum[team], team_bugs[team])
+            if team_sprint_story_point_sum[team] > 0:
+                logger.info('%s\t%s\t%s\t%s', team, sum(counts)*1.0/len(counts), team_sprint_story_point_sum[team]/team_story_point_sum[team], team_bugs[team])
+            else:
+                logger.info('%s\tNA\t%NA\t%s', team, team_bugs[team])
 
     # Measure # of story points done per assignee
     def analyze_story_points(self, start_date, end_date):
