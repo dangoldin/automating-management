@@ -22,7 +22,7 @@ My Cal | Currently on call | | Date | Frontend,Backend | Current | #eng-oncall, 
 
 ## Jira Analysis
 
-You can use jira_analysis.py to analyze stories done over a date range. The analysis includes the average number of sprints to do a story per squad, how the stories relate to the priorities, and story points by assignee.
+You can use jira_analysis.py to analyze stories done over a date range. The analysis includes the average number of sprints to do a story per team, how the stories relate to the priorities, and story points by assignee.
 
 ### TODOs
 

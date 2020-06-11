@@ -16,10 +16,10 @@ logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger('post-schedule')
 
 class JiraAnalysis():
-    def __init__(self, jira_url, jira_username, jira_token, jira_squad_labels):
+    def __init__(self, jira_url, jira_username, jira_token, jira_team_labels):
         self.issue_cache = {}
         self.jira = JIRA(jira_url, basic_auth=(jira_username, jira_token))
-        self.jira_squad_labels = jira_squad_labels
+        self.jira_team_labels = jira_team_labels
         self.sprint_field = self.get_custom_field_key('Sprint')
         self.story_point_field = self.get_custom_field_key('Story Points')
 
@@ -37,12 +37,12 @@ class JiraAnalysis():
                 return field['key']
         return None
 
-    # Retrieve the squad for an issue - based on labels
-    def get_squad(self, issue):
+    # Retrieve the team for an issue - based on labels
+    def get_team(self, issue):
         for label in issue.fields.labels:
-            for squad_label in self.jira_squad_labels:
-                if squad_label.lower() == label.lower():
-                    return squad_label
+            for team_label in self.jira_team_labels:
+                if team_label.lower() == label.lower():
+                    return team_label
         return None
 
     # Get issue type, a bit weird since it's off of fields and needs to be converted to string
@@ -110,12 +110,12 @@ class JiraAnalysis():
         issues = self.get_issues(self.get_issue_query(start_date, end_date))
         with open(fn, 'w') as f:
             w = csv.writer(f)
-            w.writerow(["ticket", "summary", "squad", "priority" , "story_points", "assignee", "resolved_date", "type"])
+            w.writerow(["ticket", "summary", "team", "priority" , "story_points", "assignee", "resolved_date", "type"])
             for issue in issues:
                 w.writerow([
                     issue,
                     issue.fields.summary.encode('utf-8'),
-                    self.get_squad(issue),
+                    self.get_team(issue),
                     self.get_priority(issue),
                     self.get_story_points(issue),
                     issue.fields.assignee if issue.fields.assignee else 'None',
@@ -153,13 +153,13 @@ class JiraAnalysis():
 
     # Measrure # of sprints to do a story
     def analyze_sprint_lag(self, start_date, end_date):
-        squad_sprint_counts = defaultdict(list)
-        squad_sprint_story_point_sum = defaultdict(float)
-        squad_story_point_sum = defaultdict(float)
-        squad_bugs = defaultdict(int)
+        team_sprint_counts = defaultdict(list)
+        team_sprint_story_point_sum = defaultdict(float)
+        team_story_point_sum = defaultdict(float)
+        team_bugs = defaultdict(int)
         issues = self.get_issues(self.get_issue_query(start_date, end_date))
         for issue in issues:
-            squad = self.get_squad(issue)
+            team = self.get_team(issue)
             try:
                 num_sprints = len(getattr(issue.fields, self.sprint_field))
             except:
@@ -167,20 +167,23 @@ class JiraAnalysis():
             story_points = get_or_float_zero(issue.fields, self.story_point_field)
             issue_type = self.get_issue_type(issue)
 
-            # Has a squad and was actually done via sprint process
-            if squad and num_sprints > 0 and issue_type == 'story':
-                squad_sprint_counts[squad].append(num_sprints)
+            # Has a team and was actually done via sprint process
+            if team and num_sprints > 0 and issue_type == 'story':
+                team_sprint_counts[team].append(num_sprints)
 
                 if story_points > 0:
-                    squad_sprint_story_point_sum[squad] += num_sprints * story_points
-                    squad_story_point_sum[squad] += story_points
+                    team_sprint_story_point_sum[team] += num_sprints * story_points
+                    team_story_point_sum[team] += story_points
 
             if issue_type == 'bug':
-                squad_bugs[squad] += 1
+                team_bugs[team] += 1
 
-        logger.info('Squad\tSprint Lag\tSP Sprint Lag\tBugs')
-        for squad, counts in squad_sprint_counts.items():
-            logger.info('%s\t%s\t%s\t%s', squad, sum(counts)*1.0/len(counts), squad_sprint_story_point_sum[squad]/squad_story_point_sum[squad], squad_bugs[squad])
+        logger.info('Team\tSprint Lag\tSP Sprint Lag\tBugs')
+        for team, counts in team_sprint_counts.items():
+            if team_sprint_story_point_sum[team] > 0:
+                logger.info('%s\t%s\t%s\t%s', team, sum(counts)*1.0/len(counts), team_sprint_story_point_sum[team]/team_story_point_sum[team], team_bugs[team])
+            else:
+                logger.info('%s\tNA\t%NA\t%s', team, team_bugs[team])
 
     # Measure # of story points done per assignee
     def analyze_story_points(self, start_date, end_date):
@@ -210,18 +213,18 @@ if __name__ == '__main__':
     JIRA_URL = get_conf_or_env('JIRA_URL', config_data)
     JIRA_USERNAME = get_conf_or_env('JIRA_USERNAME', config_data)
     JIRA_TOKEN = get_conf_or_env('JIRA_TOKEN', config_data)
-    JIRA_SQUAD_LABELS = get_conf_or_env('JIRA_SQUAD_LABELS', config_data)
+    JIRA_TEAM_LABELS = get_conf_or_env('JIRA_TEAM_LABELS', config_data)
 
-    required_variables = 'JIRA_URL JIRA_USERNAME JIRA_TOKEN JIRA_SQUAD_LABELS'.split(' ')
+    required_variables = 'JIRA_URL JIRA_USERNAME JIRA_TOKEN JIRA_TEAM_LABELS'.split(' ')
 
     for variable in required_variables:
         if eval(variable) is None:
             logger.error('Missing ' + variable)
             exit(1)
 
-    JIRA_SQUAD_LABELS = JIRA_SQUAD_LABELS.split(',')
+    JIRA_TEAM_LABELS = JIRA_TEAM_LABELS.split(',')
 
-    ja = JiraAnalysis(JIRA_URL, JIRA_USERNAME, JIRA_TOKEN, JIRA_SQUAD_LABELS)
+    ja = JiraAnalysis(JIRA_URL, JIRA_USERNAME, JIRA_TOKEN, JIRA_TEAM_LABELS)
 
     # logger.info('Get description')
     # words = ja.get_descriptions_words(start_date, end_date)
