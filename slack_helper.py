@@ -1,10 +1,12 @@
 #! /usr/bin/env python
 
-from slackclient import SlackClient
+from slack import WebClient
+import logging
+logging.basicConfig(level=logging.INFO)
 
 class SlackHelper:
     def __init__(self, token):
-        self.sc = SlackClient(token)
+        self.sc = WebClient(token)
         self.user_map = self.get_users_as_map()
 
     def get_users_as_map(self):
@@ -23,8 +25,7 @@ class SlackHelper:
         return [user['name'] for user in self.user_map.values() if user['id'] == my_id][0]
 
     def send_message(self, msg, username, channel, icon_url, as_user = False):
-        return self.sc.api_call(
-            'chat.postMessage',
+        return self.sc.chat_postMessage(
             username=username,
             as_user=as_user,
             channel=channel,
