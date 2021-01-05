@@ -22,12 +22,16 @@ class JiraAnalysis():
         self.jira_team_labels = jira_team_labels
         self.sprint_field = self.get_custom_field_key('Sprint')
         self.story_point_field = self.get_custom_field_key('Story Points')
+        self.investment_area_field = self.get_custom_field_key('Investment Area')
 
         if self.sprint_field is None:
-            raise Exception("Failed to find Sprint Field")
+            raise Exception("Failed to find Sprint field")
 
         if self.story_point_field is None:
-            raise Exception("Failed to find Story Point Field")
+            raise Exception("Failed to find Story Point field")
+    
+        if self.investment_area_field is None:
+            raise Exception("Failed to find Investment Area field")
 
     # Retrieve the custom field matching to a particular name since JIRA gives custom fields a random ID
     def get_custom_field_key(self, name):
@@ -44,6 +48,13 @@ class JiraAnalysis():
                 if team_label.lower() == label.lower():
                     return team_label
         return None
+    
+    # # Retrieve the investment area
+    def get_investment_area(self, issue):
+        ia = getattr(issue.fields, self.investment_area_field)
+        if ia:
+            return ia
+        return []  
 
     # Get issue type, a bit weird since it's off of fields and needs to be converted to string
     def get_issue_type(self, issue):
@@ -110,7 +121,7 @@ class JiraAnalysis():
         issues = self.get_issues(self.get_issue_query(start_date, end_date))
         with open(fn, 'w') as f:
             w = csv.writer(f)
-            w.writerow(["ticket", "summary", "team", "priority" , "story_points", "assignee", "resolved_date", "type"])
+            w.writerow(["ticket", "summary", "team", "priority" , "story_points", "assignee", "resolved_date", "type", "investment_area"])
             for issue in issues:
                 w.writerow([
                     issue,
@@ -120,7 +131,9 @@ class JiraAnalysis():
                     self.get_story_points(issue),
                     issue.fields.assignee if issue.fields.assignee else 'None',
                     issue.fields.resolutiondate,
-                    self.get_issue_type(issue)])
+                    self.get_issue_type(issue),
+                    ','.join(self.get_investment_area(issue)),
+                    ])
 
     # Get all done stories and bugs between a date range
     def get_issue_query(self, start_date, end_date):
