@@ -4,6 +4,7 @@ jobs:
   post_schedule:
     runs-on: ubuntu-latest
     name: Post Schedule 
+    environment: GitHub Actions
     steps:
     - name: Post schedule
       uses: dangoldin/automating-management@gh-actions
