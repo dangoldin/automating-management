@@ -1,0 +1,9 @@
+on: [push]
+
+jobs:
+  post_schedule:
+    runs-on: ubuntu-latest
+    name: Post Schedule 
+    steps:
+    - name: Post schedule
+      uses: actions/automating-management@v1
