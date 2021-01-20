@@ -1,0 +1,18 @@
+on: [push]
+
+jobs:
+  post_schedule:
+    runs-on: ubuntu-latest
+    name: Post Schedule 
+    environment: GitHub Actions
+    steps:
+    - name: Post schedule
+      uses: dangoldin/automating-management@master
+      env:
+        CREDENTIALS: ${{ secrets.CREDENTIALS }}
+        SLACK_ICON_URL: ${{ secrets.SLACK_ICON_URL }}
+        SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+        SLACK_USERNAME: ${{ secrets.SLACK_USERNAME }}
+        WORKBOOK: ${{ secrets.WORKBOOK }}
+        WORKSHEET_META_TAB: ${{ secrets.WORKSHEET_META_TAB }}
+        WORKSHEET_PEOPLE_TAB: ${{ secrets.WORKSHEET_PEOPLE_TAB }}
