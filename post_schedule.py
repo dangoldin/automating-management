@@ -37,7 +37,7 @@ def format_phone_number(phone):
 def is_current(calendar_type, today, prev_date, curr_date, next_date):
     if calendar_type == "Current" and today >= curr_date and today < next_date:
         return True
-    elif calendar_type == "Next" and today >= prev_date and today < curr_date:
+    if calendar_type == "Next" and today >= prev_date and today < curr_date:
         return True
     return False
 
