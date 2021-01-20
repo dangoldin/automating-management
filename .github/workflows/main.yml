@@ -6,4 +6,4 @@ jobs:
     name: Post Schedule 
     steps:
     - name: Post schedule
-      uses: dangoldin/automating-management@v1
+      uses: dangoldin/automating-management@gh-actions
