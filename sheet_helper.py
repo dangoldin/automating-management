@@ -4,9 +4,13 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 class GSheetHelper:
-    def __init__(self, credentials_file):
+    def __init__(self, creds):
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(credentials_file, scope)
+
+        if isinstance(creds, dict):
+            credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds, scope)
+        else:
+            credentials = ServiceAccountCredentials.from_json_keyfile_name(creds, scope)
         self.gc = gspread.authorize(credentials)
 
     def get_rows(self, workbook, worksheet):
