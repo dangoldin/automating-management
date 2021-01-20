@@ -74,11 +74,11 @@ if __name__ == "__main__":
     for variable in required_variables:
         if eval(variable) is None:
             logger.error("Missing ", variable)
-            exit(1)
+            sys.exit(1)
 
     if CREDENTIALS is None and CREDENTIALS_FILE is None:
         logger.error("Either CREDENTIALS or CREDENTIALS_FILE is required")
-        exit(1)
+        sys.exit(1)
 
     if CREDENTIALS is not None:
         CREDENTIALS = json.loads(CREDENTIALS)
@@ -182,7 +182,7 @@ if __name__ == "__main__":
                             slack_username = sh.get_username_for_fullname(user_name)
                         except:
                             print("Failed to get Slack username for " + user_name)
-                            exit(1)
+                            sys.exit(1)
                         msg += (
                             user_col
                             + ": "

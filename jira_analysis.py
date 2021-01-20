@@ -267,7 +267,7 @@ if __name__ == "__main__":
     for variable in required_variables:
         if eval(variable) is None:
             logger.error("Missing ", variable)
-            exit(1)
+            sys.exit(1)
 
     JIRA_TEAM_LABELS = JIRA_TEAM_LABELS.split(",")
 
