@@ -9,11 +9,10 @@ jobs:
     - name: Post schedule
       uses: dangoldin/automating-management@gh-actions
       env:
-        CREDENTIALS_FILE: ${{ secrets.CREDENTIALS_FILE }}
+        CREDENTIALS: ${{ secrets.CREDENTIALS }}
         SLACK_ICON_URL: ${{ secrets.SLACK_ICON_URL }}
         SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
         SLACK_USERNAME: ${{ secrets.SLACK_USERNAME }}
         WORKBOOK: ${{ secrets.WORKBOOK }}
         WORKSHEET_META_TAB: ${{ secrets.WORKSHEET_META_TAB }}
         WORKSHEET_PEOPLE_TAB: ${{ secrets.WORKSHEET_PEOPLE_TAB }}
-        

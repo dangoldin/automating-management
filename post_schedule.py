@@ -4,6 +4,7 @@ import os
 import sys
 import logging
 import random
+import json
 from datetime import datetime
 
 from slack_helper import SlackHelper
@@ -47,6 +48,7 @@ if __name__ == '__main__':
 
     config_data = read_config_file('config.env')
 
+    CREDENTIALS = get_conf_or_env('CREDENTIALS', config_data)
     CREDENTIALS_FILE = get_conf_or_env('CREDENTIALS_FILE', config_data, 'credentials.json')
     WORKBOOK = get_conf_or_env('WORKBOOK', config_data)
     WORKSHEET_META_TAB = get_conf_or_env('WORKSHEET_META_TAB', config_data)
@@ -55,15 +57,22 @@ if __name__ == '__main__':
     SLACK_ICON_URL = get_conf_or_env('SLACK_ICON_URL', config_data)
     WORKSHEET_PEOPLE_TAB = get_conf_or_env('WORKSHEET_PEOPLE_TAB', config_data)
 
-    required_variables = 'CREDENTIALS_FILE WORKBOOK WORKSHEET_META_TAB SLACK_TOKEN SLACK_USERNAME SLACK_ICON_URL'.split(' ')
+    required_variables = 'WORKBOOK WORKSHEET_META_TAB SLACK_TOKEN SLACK_USERNAME SLACK_ICON_URL'.split(' ')
 
     for variable in required_variables:
         if eval(variable) is None:
             logger.error('Missing ' + variable)
             exit(1)
 
+    if CREDENTIALS is None and CREDENTIALS_FILE is None:
+        logger.error('Either CREDENTIALS or CREDENTIALS_FILE is required')
+        exit(1)
+    
+    if CREDENTIALS is not None:
+        CREDENTIALS = json.loads(CREDENTIALS)
+
     sh = SlackHelper(SLACK_TOKEN)
-    gh = GSheetHelper(CREDENTIALS_FILE)
+    gh = GSheetHelper(credentials=CREDENTIALS, credentials_file=CREDENTIALS_FILE)
 
     people_phone_numbers = get_people_phone_numbers(WORKBOOK, WORKSHEET_PEOPLE_TAB)
 
