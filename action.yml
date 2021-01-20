@@ -3,4 +3,4 @@ name: 'Send schedule'
 description: 'Send schedule'
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'Dockerfile-test'
