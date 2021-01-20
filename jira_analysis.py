@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 
-import os
 import sys
 import logging
 import csv
@@ -266,8 +265,8 @@ if __name__ == "__main__":
 
     for variable in required_variables:
         if eval(variable) is None:
-            logger.error("Missing " + variable)
-            exit(1)
+            logger.error("Missing ", variable)
+            sys.exit(1)
 
     JIRA_TEAM_LABELS = JIRA_TEAM_LABELS.split(",")
 

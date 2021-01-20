@@ -36,7 +36,7 @@ def get_conf_or_env(key, config_map, default_val=None):
 def read_config_file(filepath):
     out = {}
     if os.path.exists(filepath):
-        logger.info("Found config file at " + filepath)
+        logger.info("Found config file at ", filepath)
         with open(filepath, "r") as f:
             data = f.read()
             for line in data.split("\n"):
@@ -44,5 +44,5 @@ def read_config_file(filepath):
                     key, val = line.split("=")
                     out[key] = val
     else:
-        logger.warn("Unable to find config file at " + filepath)
+        logger.warn("Unable to find config file at ", filepath)
     return out

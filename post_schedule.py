@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 
-import os
 import sys
 import logging
 import random
@@ -37,7 +36,7 @@ def format_phone_number(phone):
 def is_current(calendar_type, today, prev_date, curr_date, next_date):
     if calendar_type == "Current" and today >= curr_date and today < next_date:
         return True
-    elif calendar_type == "Next" and today >= prev_date and today < curr_date:
+    if calendar_type == "Next" and today >= prev_date and today < curr_date:
         return True
     return False
 
@@ -73,12 +72,12 @@ if __name__ == "__main__":
 
     for variable in required_variables:
         if eval(variable) is None:
-            logger.error("Missing " + variable)
-            exit(1)
+            logger.error("Missing ", variable)
+            sys.exit(1)
 
     if CREDENTIALS is None and CREDENTIALS_FILE is None:
         logger.error("Either CREDENTIALS or CREDENTIALS_FILE is required")
-        exit(1)
+        sys.exit(1)
 
     if CREDENTIALS is not None:
         CREDENTIALS = json.loads(CREDENTIALS)
@@ -160,7 +159,7 @@ if __name__ == "__main__":
                     calendar_type, today, prev_date, curr_date, next_date
                 )
                 if current:
-                    logger.info("Current:" + rowmap[date_col])
+                    logger.info("Current:", rowmap[date_col])
 
             if current:
                 msg = "*" + message + ": " + rowmap[date_col] + "*\n"
@@ -182,7 +181,7 @@ if __name__ == "__main__":
                             slack_username = sh.get_username_for_fullname(user_name)
                         except:
                             print("Failed to get Slack username for " + user_name)
-                            exit(1)
+                            sys.exit(1)
                         msg += (
                             user_col
                             + ": "
