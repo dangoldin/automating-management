@@ -7,7 +7,7 @@ jobs:
     environment: GitHub Actions
     steps:
     - name: Post schedule
-      uses: dangoldin/automating-management@gh-actions
+      uses: dangoldin/automating-management@master
       env:
         CREDENTIALS: ${{ secrets.CREDENTIALS }}
         SLACK_ICON_URL: ${{ secrets.SLACK_ICON_URL }}
