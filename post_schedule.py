@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     for variable in required_variables:
         if eval(variable) is None:
-            logger.error("Missing " + variable)
+            logger.error("Missing ", variable)
             exit(1)
 
     if CREDENTIALS is None and CREDENTIALS_FILE is None:
@@ -160,7 +160,7 @@ if __name__ == "__main__":
                     calendar_type, today, prev_date, curr_date, next_date
                 )
                 if current:
-                    logger.info("Current:" + rowmap[date_col])
+                    logger.info("Current:", rowmap[date_col])
 
             if current:
                 msg = "*" + message + ": " + rowmap[date_col] + "*\n"
