@@ -159,7 +159,7 @@ if __name__ == "__main__":
                     calendar_type, today, prev_date, curr_date, next_date
                 )
                 if current:
-                    logger.info("Current:", rowmap[date_col])
+                    logger.info("Current: %s", rowmap[date_col])
 
             if current:
                 msg = "*" + message + ": " + rowmap[date_col] + "*\n"
