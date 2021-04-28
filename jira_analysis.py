@@ -62,7 +62,7 @@ class JiraAnalysis:
 
     # Retrieve the epic link
     def get_epic_link(self, issue):
-        return getattr(issue.fields, self.epic_link_field, '')
+        return getattr(issue.fields, self.epic_link_field, "")
 
     # Get issue type, a bit weird since it's off of fields and needs to be converted to string
     def get_issue_type(self, issue):
