@@ -23,6 +23,7 @@ class JiraAnalysis:
         self.sprint_field = self.get_custom_field_key("Sprint")
         self.story_point_field = self.get_custom_field_key("Story Points")
         self.investment_area_field = self.get_custom_field_key("Investment Area")
+        self.epic_link_field = self.get_custom_field_key("Epic Link")
 
         if self.sprint_field is None:
             raise Exception("Failed to find Sprint field")
@@ -32,6 +33,9 @@ class JiraAnalysis:
 
         if self.investment_area_field is None:
             raise Exception("Failed to find Investment Area field")
+
+        if self.epic_link_field is None:
+            raise Exception("Failed to find Epic Link field")
 
     # Retrieve the custom field matching to a particular name since JIRA gives custom fields a random ID
     def get_custom_field_key(self, name):
@@ -49,12 +53,16 @@ class JiraAnalysis:
                     return team_label
         return None
 
-    # # Retrieve the investment area
+    # Retrieve the investment area
     def get_investment_area(self, issue):
         ia = getattr(issue.fields, self.investment_area_field)
         if ia:
             return ia
         return []
+
+    # Retrieve the epic link
+    def get_epic_link(self, issue):
+        return getattr(issue.fields, self.epic_link_field, '')
 
     # Get issue type, a bit weird since it's off of fields and needs to be converted to string
     def get_issue_type(self, issue):
@@ -135,6 +143,7 @@ class JiraAnalysis:
                     "resolved_date",
                     "type",
                     "investment_area",
+                    "epic",
                 ]
             )
             for issue in issues:
@@ -150,6 +159,7 @@ class JiraAnalysis:
                         issue.fields.resolutiondate,
                         self.get_issue_type(issue),
                         ",".join(self.get_investment_area(issue)),
+                        self.get_epic_link(issue),
                     ]
                 )
 
