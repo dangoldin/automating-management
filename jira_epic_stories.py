@@ -63,7 +63,7 @@ class JiraAnalysis:
 
     # Retrieve the epic link
     def get_epic_link(self, issue):
-        return getattr(issue.fields, self.epic_link_field, '')
+        return getattr(issue.fields, self.epic_link_field, "")
 
     # Get issue type, a bit weird since it's off of fields and needs to be converted to string
     def get_issue_type(self, issue):
@@ -155,7 +155,7 @@ class JiraAnalysis:
                     l = [0, 0, 0]
                 l[0] += 1
                 l[1] += story_points
-                if status == 'Done':
+                if status == "Done":
                     l[2] += story_points
                 epic_map[epic] = l
 
@@ -163,10 +163,13 @@ class JiraAnalysis:
         for epic_id, vals in epic_map.items():
             logger.info("Updating %s", epic_id)
             epic = self.jira.issue(epic_id)
-            epic.update(notify=False, fields={
-                self.story_point_field: vals[1],
-                self.story_point_done_field: vals[2]
-                })
+            epic.update(
+                notify=False,
+                fields={
+                    self.story_point_field: vals[1],
+                    self.story_point_done_field: vals[2],
+                },
+            )
 
     # Get all done stories and bugs between a date range
     def get_issue_query(self, start_date, end_date):
@@ -176,6 +179,7 @@ class JiraAnalysis:
             + ' AND labels is not empty AND "Epic Link" is not empty'
             + ' AND type in ("story", "bug", "task", "spike", "access", "incident")'
         ) % (start_date, end_date)
+
 
 if __name__ == "__main__":
     start_date = sys.argv[1]
