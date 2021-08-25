@@ -39,6 +39,10 @@ class SlackHelper:
             parse="full",
         )
 
+    def get_messages(self, channel):
+        channel_id = self.get_channel_id(channel)
+        return self.sc.conversations_history(channel=channel_id)
+
     def execute_command(self, msg, username, channel, icon_url, as_user=False):
         return self.sc.api_call(
             "chat.command",
@@ -50,6 +54,17 @@ class SlackHelper:
             link_names=1,
             parse="full",
         )
+
+    def get_channel_id(self, channel_filter):
+        all_channels = self.sc.api_call("conversations.list")["channels"]
+
+        my_channel = [
+            channel
+            for channel in all_channels
+            if channel["name"] == channel_filter.replace("#", "")
+        ]
+
+        return my_channel[0]['id']
 
     def get_channel_members(self, channel_filter):
         all_channels = self.sc.api_call("channels.list")["channels"]

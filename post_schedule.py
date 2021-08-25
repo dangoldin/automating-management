@@ -20,19 +20,6 @@ def get_meta_rows(workbook, meta_tab):
     return gh.get_rows(workbook, meta_tab)
 
 
-def get_people_phone_numbers(workbook, people_tab):
-    rows = gh.get_rows(workbook, people_tab)
-    people = {}
-    for row in rows:
-        people[row["Name"].lower()] = row["Phone"]
-    return people
-
-
-# TODO: Support non US
-def format_phone_number(phone):
-    return phone[:3] + "." + phone[3:6] + "." + phone[6:]
-
-
 def is_current(calendar_type, today, prev_date, curr_date, next_date):
     if calendar_type == "Current" and today >= curr_date and today < next_date:
         return True
@@ -85,8 +72,6 @@ if __name__ == "__main__":
     sh = SlackHelper(SLACK_TOKEN)
     gh = GSheetHelper(credentials=CREDENTIALS, credentials_file=CREDENTIALS_FILE)
 
-    people_phone_numbers = get_people_phone_numbers(WORKBOOK, WORKSHEET_PEOPLE_TAB)
-
     meta_rows = get_meta_rows(WORKBOOK, WORKSHEET_META_TAB)
 
     print(meta_rows)
@@ -102,7 +87,6 @@ if __name__ == "__main__":
             slack_channels,
             active,
             ack,
-            include_phone,
         ) = [
             row[x]
             for x in (
@@ -115,13 +99,11 @@ if __name__ == "__main__":
                 "Slack Channels",
                 "Active",
                 "Acknowledge",
-                "Include Phone",
             )
         ]
 
         active = active == "1"
         ack = ack == "1"
-        include_phone = include_phone == "1"
 
         logger.info(
             {
@@ -134,7 +116,6 @@ if __name__ == "__main__":
                 "Slach Channels": slack_channels,
                 "Active": active,
                 "Acknowledge": ack,
-                "Include Phone": include_phone,
             }
         )
 
@@ -171,12 +152,6 @@ if __name__ == "__main__":
                     user_col = user_col.strip()
                     if user_col and rowmap[user_col]:
                         user_name = rowmap[user_col].lower()
-                        if include_phone:
-                            phone_number = format_phone_number(
-                                people_phone_numbers[user_name]
-                            )
-                        else:
-                            phone_number = ""
                         try:
                             slack_username = sh.get_username_for_fullname(user_name)
                         except:
@@ -187,8 +162,6 @@ if __name__ == "__main__":
                             + ": "
                             + "@"
                             + sh.get_username_for_fullname(user_name)
-                            + " "
-                            + phone_number
                             + "\n"
                         )
 
