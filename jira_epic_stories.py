@@ -102,6 +102,13 @@ class JiraAnalysis:
     def get_story_points(self, issue):
         return get_or_float_zero(issue.fields, self.story_point_field)
 
+    # Get sprints for an issue
+    def get_sprints(self, issue):
+        sprints = getattr(issue.fields, self.sprint_field)
+        if sprints is None:
+            sprints = []
+        return [s.name for s in sprints]
+
     # Wrap the pagination code so user doesn't have to do it themselves
     def get_issues(self, query):
         if query in self.issue_cache:
@@ -142,6 +149,7 @@ class JiraAnalysis:
                     "investment_area",
                     "status",
                     "epic",
+                    "sprints",
                 ]
             )
             for issue in issues:
@@ -158,6 +166,7 @@ class JiraAnalysis:
                         ",".join(self.get_investment_area(issue)),
                         issue.fields.status,
                         self.get_epic_link(issue),
+                        ",".join(self.get_sprints(issue)),
                     ]
                 )
         return issues
