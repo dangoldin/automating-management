@@ -23,16 +23,18 @@ MAX_WORKERS = 16
 
 QUARTER_MAP = {
     # This will be >=, < (inclusive of start, exclusive of end)
-    '2021-Q1': ('2021-01-01', '2021-04-01'),
-    '2021-Q2': ('2021-04-01', '2021-07-12'),
-    '2021-Q3': ('2021-07-12', '2021-10-05'),
-    '2021-Q4': ('2021-10-05', '2021-12-31'),
+    "2021-Q1": ("2021-01-01", "2021-04-01"),
+    "2021-Q2": ("2021-04-01", "2021-07-12"),
+    "2021-Q3": ("2021-07-12", "2021-10-05"),
+    "2021-Q4": ("2021-10-05", "2021-12-31"),
 }
+
 
 def update_in_jira(jira, epic_id, fields):
     logger.info("Updating %s", epic_id)
     epic = jira.issue(epic_id)
     epic.update(notify=False, fields=fields)
+
 
 class JiraAnalysis:
     def __init__(self, jira_url, jira_username, jira_token, jira_team_labels):
@@ -45,11 +47,21 @@ class JiraAnalysis:
         self.investment_area_field = self.get_custom_field_key("Investment Area")
         self.epic_link_field = self.get_custom_field_key("Epic Link")
         self.num_tickets_field = self.get_custom_field_key("Num Tickets")
-        self.non_pointed_tickets_field = self.get_custom_field_key("Non-pointed Tickets")
-        self.story_point_done_q1_field = self.get_custom_field_key("Story Points (Done 2021Q1)")
-        self.story_point_done_q2_field = self.get_custom_field_key("Story Points (Done 2021Q2)")
-        self.story_point_done_q3_field = self.get_custom_field_key("Story Points (Done 2021Q3)")
-        self.story_point_done_q4_field = self.get_custom_field_key("Story Points (Done 2021Q4)")
+        self.non_pointed_tickets_field = self.get_custom_field_key(
+            "Non-pointed Tickets"
+        )
+        self.story_point_done_q1_field = self.get_custom_field_key(
+            "Story Points (Done 2021Q1)"
+        )
+        self.story_point_done_q2_field = self.get_custom_field_key(
+            "Story Points (Done 2021Q2)"
+        )
+        self.story_point_done_q3_field = self.get_custom_field_key(
+            "Story Points (Done 2021Q3)"
+        )
+        self.story_point_done_q4_field = self.get_custom_field_key(
+            "Story Points (Done 2021Q4)"
+        )
 
         if self.sprint_field is None:
             raise Exception("Failed to find Sprint field")
@@ -176,9 +188,9 @@ class JiraAnalysis:
         qm = {}
         for quarter, date_range in QUARTER_MAP.items():
             s, e = date_range
-            sd = datetime.strptime(s, '%Y-%m-%d')
+            sd = datetime.strptime(s, "%Y-%m-%d")
             sd = sd.replace(tzinfo=pytz.UTC)
-            ed = datetime.strptime(e, '%Y-%m-%d')
+            ed = datetime.strptime(e, "%Y-%m-%d")
             ed = ed.replace(tzinfo=pytz.UTC)
             qm[quarter] = (sd, ed)
 
@@ -197,14 +209,14 @@ class JiraAnalysis:
                 else:
                     # Count, Total SP, Done SP, Non Pointed Tickets
                     l = {
-                        'count': 0,
-                        'total_sp': 0,
-                        'done_sp': 0,
-                        'non_pointed_tickets': 0,
-                        '2021-Q1': 0,
-                        '2021-Q2': 0,
-                        '2021-Q3': 0,
-                        '2021-Q4': 0,
+                        "count": 0,
+                        "total_sp": 0,
+                        "done_sp": 0,
+                        "non_pointed_tickets": 0,
+                        "2021-Q1": 0,
+                        "2021-Q2": 0,
+                        "2021-Q3": 0,
+                        "2021-Q4": 0,
                     }
 
                 done_quarter = None
@@ -212,17 +224,19 @@ class JiraAnalysis:
                     s, e = dr
                     if issue.fields.resolutiondate:
                         print(issue.fields.resolutiondate)
-                        rd = datetime.strptime(issue.fields.resolutiondate, '%Y-%m-%dT%H:%M:%S.%f%z')
+                        rd = datetime.strptime(
+                            issue.fields.resolutiondate, "%Y-%m-%dT%H:%M:%S.%f%z"
+                        )
                         if rd >= s and rd < e:
                             done_quarter = q
                             break
 
-                l['count'] += 1
-                l['total_sp'] += story_points
-                if status == 'Done':
-                    l['done_sp'] += story_points
+                l["count"] += 1
+                l["total_sp"] += story_points
+                if status == "Done":
+                    l["done_sp"] += story_points
                 if story_points == 0:
-                    l['non_pointed_tickets'] += 1
+                    l["non_pointed_tickets"] += 1
                 if done_quarter:
                     l[done_quarter] += story_points
                 epic_map[epic] = l
@@ -231,30 +245,34 @@ class JiraAnalysis:
         executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
         futures = []
         for epic_id, vals in epic_map.items():
-            future = executor.submit(update_in_jira, self.jira, epic_id, {
-                self.num_tickets_field: vals['count'],
-                self.story_point_field: vals['total_sp'],
-                self.story_point_done_field: vals['done_sp'],
-                self.non_pointed_tickets_field: vals['non_pointed_tickets'],
-                self.story_point_done_q1_field: vals['2021-Q1'],
-                self.story_point_done_q2_field: vals['2021-Q2'],
-                self.story_point_done_q3_field: vals['2021-Q3'],
-                self.story_point_done_q4_field: vals['2021-Q4'],
-                })
+            future = executor.submit(
+                update_in_jira,
+                self.jira,
+                epic_id,
+                {
+                    self.num_tickets_field: vals["count"],
+                    self.story_point_field: vals["total_sp"],
+                    self.story_point_done_field: vals["done_sp"],
+                    self.non_pointed_tickets_field: vals["non_pointed_tickets"],
+                    self.story_point_done_q1_field: vals["2021-Q1"],
+                    self.story_point_done_q2_field: vals["2021-Q2"],
+                    self.story_point_done_q3_field: vals["2021-Q3"],
+                    self.story_point_done_q4_field: vals["2021-Q4"],
+                },
+            )
             futures.append(future)
 
         for future in futures:
             logger.info(future.result())
             future.result()
 
-
     # Get all done stories and bugs between a date range
     def get_issue_query(self, start_date, end_date):
         return (
             'project = "TL" and created >= "%s" and created <= "%s"'
-            + ' AND labels is not empty ' # AND "Epic Link" is not empty'
+            + " AND labels is not empty "  # AND "Epic Link" is not empty'
             + ' AND type in ("story", "bug", "task", "spike", "access", "incident")'
-            + ' AND status != closed'
+            + " AND status != closed"
         ) % (start_date, end_date)
 
 

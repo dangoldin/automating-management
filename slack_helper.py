@@ -64,7 +64,7 @@ class SlackHelper:
             if channel["name"] == channel_filter.replace("#", "")
         ]
 
-        return my_channel[0]['id']
+        return my_channel[0]["id"]
 
     def get_channel_members(self, channel_filter):
         all_channels = self.sc.api_call("channels.list")["channels"]
