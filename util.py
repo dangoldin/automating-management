@@ -44,5 +44,5 @@ def read_config_file(filepath):
                     key, val = line.split("=")
                     out[key] = val
     else:
-        logger.warn("Unable to find config file at %s", filepath)
+        logger.warning("Unable to find config file at %s", filepath)
     return out

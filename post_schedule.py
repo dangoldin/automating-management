@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     for variable in required_variables:
         if eval(variable) is None:
-            logger.error("Missing ", variable)
+            logger.error("Missing %s", variable)
             sys.exit(1)
 
     if CREDENTIALS is None and CREDENTIALS_FILE is None:
