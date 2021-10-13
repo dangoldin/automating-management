@@ -19,6 +19,7 @@ if __name__ == "__main__":
     for member_id in channel_members:
         username = sh.get_name_by_id(member_id)
         print("Sending to {0}".format(username))
+
         print(sh.send_message(
             msg=message,
             username=None,
