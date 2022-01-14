@@ -4,7 +4,6 @@ import sys
 import logging
 import csv
 
-from collections import Counter, defaultdict
 from jira import JIRA
 from math import ceil
 
