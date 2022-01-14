@@ -13,7 +13,7 @@ import pytz
 
 from concurrent.futures import ThreadPoolExecutor
 
-from util import print_dict, get_or_float_zero, get_conf_or_env, read_config_file
+from util import get_or_float_zero, get_conf_or_env, read_config_file
 
 FORMAT = "%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
@@ -23,10 +23,7 @@ MAX_WORKERS = 16
 
 QUARTER_MAP = {
     # This will be >=, < (inclusive of start, exclusive of end)
-    '2021-Q1': ('2021-01-01', '2021-04-01'),
-    '2021-Q2': ('2021-04-01', '2021-07-12'),
-    '2021-Q3': ('2021-07-12', '2021-10-05'),
-    '2021-Q4': ('2021-10-05', '2021-12-31'),
+    '2022-Q1': ('2022-01-10', '2022-04-01'),
 }
 
 def update_in_jira(jira, epic_id, fields):
@@ -46,10 +43,10 @@ class JiraAnalysis:
         self.epic_link_field = self.get_custom_field_key("Epic Link")
         self.num_tickets_field = self.get_custom_field_key("Num Tickets")
         self.non_pointed_tickets_field = self.get_custom_field_key("Non-pointed Tickets")
-        self.story_point_done_q1_field = self.get_custom_field_key("Story Points (Done 2021Q1)")
-        self.story_point_done_q2_field = self.get_custom_field_key("Story Points (Done 2021Q2)")
-        self.story_point_done_q3_field = self.get_custom_field_key("Story Points (Done 2021Q3)")
-        self.story_point_done_q4_field = self.get_custom_field_key("Story Points (Done 2021Q4)")
+        self.story_point_done_q1_field = self.get_custom_field_key("Story Points (Done 2022Q1)")
+        self.story_point_done_q2_field = self.get_custom_field_key("Story Points (Done 2022Q2)")
+        self.story_point_done_q3_field = self.get_custom_field_key("Story Points (Done 2022Q3)")
+        self.story_point_done_q4_field = self.get_custom_field_key("Story Points (Done 2022Q4)")
 
         if self.sprint_field is None:
             raise Exception("Failed to find Sprint field")
@@ -81,10 +78,12 @@ class JiraAnalysis:
 
     # Retrieve the investment area
     def get_investment_area(self, issue):
-        ia = getattr(issue.fields, self.investment_area_field)
-        if ia:
-            return ia
-        return []
+        try:
+            ia = getattr(issue.fields, self.investment_area_field)
+            if ia:
+                return ia
+        finally:
+            return []
 
     # Retrieve the epic link
     def get_epic_link(self, issue):
@@ -201,10 +200,10 @@ class JiraAnalysis:
                         'total_sp': 0,
                         'done_sp': 0,
                         'non_pointed_tickets': 0,
-                        '2021-Q1': 0,
-                        '2021-Q2': 0,
-                        '2021-Q3': 0,
-                        '2021-Q4': 0,
+                        '2022-Q1': 0,
+                        '2022-Q2': 0,
+                        '2022-Q3': 0,
+                        '2022-Q4': 0,
                     }
 
                 done_quarter = None
@@ -236,10 +235,10 @@ class JiraAnalysis:
                 self.story_point_field: vals['total_sp'],
                 self.story_point_done_field: vals['done_sp'],
                 self.non_pointed_tickets_field: vals['non_pointed_tickets'],
-                self.story_point_done_q1_field: vals['2021-Q1'],
-                self.story_point_done_q2_field: vals['2021-Q2'],
-                self.story_point_done_q3_field: vals['2021-Q3'],
-                self.story_point_done_q4_field: vals['2021-Q4'],
+                self.story_point_done_q1_field: vals['2022-Q1'],
+                self.story_point_done_q2_field: vals['2022-Q2'],
+                self.story_point_done_q3_field: vals['2022-Q3'],
+                self.story_point_done_q4_field: vals['2022-Q4'],
                 })
             futures.append(future)
 
