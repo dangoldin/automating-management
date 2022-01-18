@@ -142,7 +142,7 @@ class JiraAnalysis:
         return all_issues
 
     # Clean up and write issues to a CSV
-    def write_issues(self, start_date, end_date, fn):
+    def write_issues(self, fn, start_date, end_date = None):
         issues = self.get_issues(self.get_issue_query(start_date, end_date))
         with open(fn, "w") as f:
             w = csv.writer(f)
@@ -264,19 +264,26 @@ class JiraAnalysis:
             logger.info(future.result())
             future.result()
 
-    # Get all done stories and bugs between a date range
-    def get_issue_query(self, start_date, end_date):
-        return (
-            'project = "TL" and created >= "%s" and created <= "%s"'
-            + " AND labels is not empty "  # AND "Epic Link" is not empty'
-            + ' AND type in ("story", "bug", "task", "spike", "access", "incident")'
-            + " AND status != closed"
-        ) % (start_date, end_date)
+    # Get all done stories and bugs within a date range
+    def get_issue_query(self, start_date, end_date = None):
+        query = """project = "TL" AND labels is not empty
+            AND type in ("story", "bug", "task", "spike", "access", "incident")
+            AND status != closed
+            AND created >= "%s"
+            """  % start_date
+
+        if end_date:
+            query += ' AND created <= "%s"' % end_date
+
+        return query
 
 
 if __name__ == "__main__":
     start_date = sys.argv[1]
-    end_date = sys.argv[2]
+    if len(sys.argv) > 2:
+        end_date = sys.argv[2]
+    else:
+        end_date = None
 
     config_data = read_config_file("config.env")
 
@@ -297,5 +304,5 @@ if __name__ == "__main__":
     ja = JiraAnalysis(JIRA_URL, JIRA_USERNAME, JIRA_TOKEN, JIRA_TEAM_LABELS)
 
     logger.info("Writing stories to issues.csv")
-    issues = ja.write_issues(start_date, end_date, "issues.csv")
+    issues = ja.write_issues("issues.csv", start_date, end_date)
     ja.summarize_by_epic(issues)
