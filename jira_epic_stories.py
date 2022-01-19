@@ -142,7 +142,7 @@ class JiraAnalysis:
         return all_issues
 
     # Clean up and write issues to a CSV
-    def write_issues(self, fn, start_date, end_date = None):
+    def write_issues(self, fn, start_date, end_date=None):
         issues = self.get_issues(self.get_issue_query(start_date, end_date))
         with open(fn, "w") as f:
             w = csv.writer(f)
@@ -265,12 +265,15 @@ class JiraAnalysis:
             future.result()
 
     # Get all done stories and bugs within a date range
-    def get_issue_query(self, start_date, end_date = None):
-        query = """project = "TL" AND labels is not empty
+    def get_issue_query(self, start_date, end_date=None):
+        query = (
+            """project = "TL" AND labels is not empty
             AND type in ("story", "bug", "task", "spike", "access", "incident")
             AND status != closed
             AND created >= "%s"
-            """  % start_date
+            """
+            % start_date
+        )
 
         if end_date:
             query += ' AND created <= "%s"' % end_date
