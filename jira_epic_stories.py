@@ -18,7 +18,7 @@ FORMAT = "%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger("post-schedule")
 
-MAX_WORKERS = 16
+MAX_WORKERS = 4
 
 QUARTER_MAP = {
     # This will be >=, < (inclusive of start, exclusive of end)
@@ -253,9 +253,10 @@ class JiraAnalysis:
                     self.story_point_done_field: vals["done_sp"],
                     self.non_pointed_tickets_field: vals["non_pointed_tickets"],
                     self.story_point_done_q1_field: vals["2022-Q1"],
-                    self.story_point_done_q2_field: vals["2022-Q2"],
-                    self.story_point_done_q3_field: vals["2022-Q3"],
-                    self.story_point_done_q4_field: vals["2022-Q4"],
+                    # Enable these later
+                    # self.story_point_done_q2_field: vals["2022-Q2"],
+                    # self.story_point_done_q3_field: vals["2022-Q3"],
+                    # self.story_point_done_q4_field: vals["2022-Q4"],
                 },
             )
             futures.append(future)
@@ -267,7 +268,7 @@ class JiraAnalysis:
     # Get all done stories and bugs within a date range
     def get_issue_query(self, start_date, end_date=None):
         query = (
-            """project = "TL" AND labels is not empty
+            """project = "TL"
             AND type in ("story", "bug", "task", "spike", "access", "incident")
             AND status != closed
             AND created >= "%s"
