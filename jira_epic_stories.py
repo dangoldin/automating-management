@@ -145,7 +145,9 @@ class JiraAnalysis:
 
     # Clean up and write issues to a CSV
     def write_issues(self, fn, start_date, end_date=None, with_epics_only=False):
-        issues = self.get_issues(self.get_issue_query(start_date, end_date, with_epics_only))
+        issues = self.get_issues(
+            self.get_issue_query(start_date, end_date, with_epics_only)
+        )
         with open(fn, "w") as f:
             w = csv.writer(f)
             w.writerow(
@@ -294,13 +296,13 @@ if __name__ == "__main__":
     epics_only = False
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"hs:e:",["start=","end","epics"])
+        opts, args = getopt.getopt(sys.argv[1:], "hs:e:", ["start=", "end", "epics"])
     except getopt.GetoptError:
-        print('jira_epic_stories.py -s <start-date> -e <end-date> --epics')
+        print("jira_epic_stories.py -s <start-date> -e <end-date> --epics")
         sys.exit(2)
     for opt, arg in opts:
-        if opt == '-h':
-            print('jira_epic_stories.py -s <start-date> -e <end-date> --epics')
+        if opt == "-h":
+            print("jira_epic_stories.py -s <start-date> -e <end-date> --epics")
             sys.exit()
         elif opt in ("-s", "--start"):
             start_date = arg
