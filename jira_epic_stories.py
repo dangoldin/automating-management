@@ -24,7 +24,8 @@ MAX_WORKERS = 4
 
 QUARTER_MAP = {
     # This will be >=, < (inclusive of start, exclusive of end)
-    "2022-Q1": ("2022-01-10", "2022-04-01"),
+    "2022-Q1": ("2022-01-10", "2022-04-04"),
+    "2022-Q2": ("2022-04-04", "2022-07-01"),
 }
 
 
