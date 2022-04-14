@@ -145,7 +145,9 @@ class JiraAnalysis:
         return all_issues
 
     # Clean up and write issues to a CSV
-    def write_issues(self, fn, start_date, end_date=None, with_epics_only=False, epic=None):
+    def write_issues(
+        self, fn, start_date, end_date=None, with_epics_only=False, epic=None
+    ):
         issues = self.get_issues(
             self.get_issue_query(start_date, end_date, with_epics_only, epic)
         )
@@ -271,7 +273,9 @@ class JiraAnalysis:
             future.result()
 
     # Get all done stories and bugs within a date range
-    def get_issue_query(self, start_date, end_date=None, with_epics_only=False, epic=None):
+    def get_issue_query(
+        self, start_date, end_date=None, with_epics_only=False, epic=None
+    ):
         query = (
             """project = "TL"
             AND type in ("story", "bug", "task", "spike", "access", "incident")
@@ -303,14 +307,20 @@ if __name__ == "__main__":
     epic = None
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "se:", ["start=", "end=", "epics", "epic="])
+        opts, args = getopt.getopt(
+            sys.argv[1:], "se:", ["start=", "end=", "epics", "epic="]
+        )
     except getopt.GetoptError as e:
-        print("jira_epic_stories.py -s <start-date> -e <end-date> --epics --epic=<epic-id>")
+        print(
+            "jira_epic_stories.py -s <start-date> -e <end-date> --epics --epic=<epic-id>"
+        )
         sys.exit(2)
     for opt, arg in opts:
         print(opt, arg)
         if opt == "-h":
-            print("jira_epic_stories.py -s <start-date> -e <end-date> --epics --epic=<epic-id>")
+            print(
+                "jira_epic_stories.py -s <start-date> -e <end-date> --epics --epic=<epic-id>"
+            )
             sys.exit()
         elif opt in ("-s", "--start"):
             start_date = arg
