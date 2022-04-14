@@ -145,9 +145,9 @@ class JiraAnalysis:
         return all_issues
 
     # Clean up and write issues to a CSV
-    def write_issues(self, fn, start_date, end_date=None, with_epics_only=False):
+    def write_issues(self, fn, start_date, end_date=None, with_epics_only=False, epic=None):
         issues = self.get_issues(
-            self.get_issue_query(start_date, end_date, with_epics_only)
+            self.get_issue_query(start_date, end_date, with_epics_only, epic)
         )
         with open(fn, "w") as f:
             w = csv.writer(f)
@@ -258,8 +258,8 @@ class JiraAnalysis:
                     self.story_point_done_field: vals["done_sp"],
                     self.non_pointed_tickets_field: vals["non_pointed_tickets"],
                     self.story_point_done_q1_field: vals["2022-Q1"],
+                    self.story_point_done_q2_field: vals["2022-Q2"],
                     # Enable these later
-                    # self.story_point_done_q2_field: vals["2022-Q2"],
                     # self.story_point_done_q3_field: vals["2022-Q3"],
                     # self.story_point_done_q4_field: vals["2022-Q4"],
                 },
@@ -271,7 +271,7 @@ class JiraAnalysis:
             future.result()
 
     # Get all done stories and bugs within a date range
-    def get_issue_query(self, start_date, end_date=None, with_epics_only=False):
+    def get_issue_query(self, start_date, end_date=None, with_epics_only=False, epic=None):
         query = (
             """project = "TL"
             AND type in ("story", "bug", "task", "spike", "access", "incident")
@@ -287,6 +287,11 @@ class JiraAnalysis:
         if with_epics_only:
             query += ' AND "Epic Link" is not empty'
 
+        if epic:
+            query += ' AND "Epic Link" = "%s"' % epic
+
+        print(query)
+
         return query
 
 
@@ -295,22 +300,26 @@ if __name__ == "__main__":
 
     start_date = end_date = None
     epics_only = False
+    epic = None
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hs:e:", ["start=", "end", "epics"])
-    except getopt.GetoptError:
-        print("jira_epic_stories.py -s <start-date> -e <end-date> --epics")
+        opts, args = getopt.getopt(sys.argv[1:], "se:", ["start=", "end=", "epics", "epic="])
+    except getopt.GetoptError as e:
+        print("jira_epic_stories.py -s <start-date> -e <end-date> --epics --epic=<epic-id>")
         sys.exit(2)
     for opt, arg in opts:
+        print(opt, arg)
         if opt == "-h":
-            print("jira_epic_stories.py -s <start-date> -e <end-date> --epics")
+            print("jira_epic_stories.py -s <start-date> -e <end-date> --epics --epic=<epic-id>")
             sys.exit()
         elif opt in ("-s", "--start"):
             start_date = arg
         elif opt in ("-e", "--end"):
             end_date = arg
-        elif opt in ("--epics"):
+        elif opt in ("--epics",):
             epics_only = True
+        elif opt in ("--epic",):
+            epic = arg
 
     config_data = read_config_file("config.env")
 
@@ -331,7 +340,7 @@ if __name__ == "__main__":
     ja = JiraAnalysis(JIRA_URL, JIRA_USERNAME, JIRA_TOKEN, JIRA_TEAM_LABELS)
 
     logger.info("Writing stories to issues.csv")
-    issues = ja.write_issues("issues.csv", start_date, end_date, epics_only)
+    issues = ja.write_issues("issues.csv", start_date, end_date, epics_only, epic)
     ja.summarize_by_epic(issues)
 
     logger.info("Program runtime: %.2f seconds", time.time() - start_time)
