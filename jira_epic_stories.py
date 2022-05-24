@@ -32,7 +32,10 @@ QUARTER_MAP = {
 def update_in_jira(jira, epic_id, fields):
     logger.info("Updating %s", epic_id)
     epic = jira.issue(epic_id)
-    epic.update(notify=False, fields=fields)
+    try:
+        epic.update(notify=False, fields=fields)
+    except Exception as e:
+        print("Failed updating", epic_id, e)
 
 
 class JiraAnalysis:
@@ -79,6 +82,7 @@ class JiraAnalysis:
         all_fields = self.jira.fields()
         for field in all_fields:
             if field["name"] == name:
+                print(name, field["key"])
                 return field["key"]
         return None
 
