@@ -47,10 +47,8 @@ class JiraAnalysis:
         self.jira_team_labels = jira_team_labels
         self.sprint_field = self.get_custom_field_key("Sprint")
         self.story_point_field = self.get_custom_field_key("Story Points")
-        self.story_point_done_field = self.get_custom_field_key(
-            "Story Points (Done)")
-        self.investment_area_field = self.get_custom_field_key(
-            "Investment Area")
+        self.story_point_done_field = self.get_custom_field_key("Story Points (Done)")
+        self.investment_area_field = self.get_custom_field_key("Investment Area")
         self.epic_link_field = self.get_custom_field_key("Epic Link")
         self.num_tickets_field = self.get_custom_field_key("Num Tickets")
         self.non_pointed_tickets_field = self.get_custom_field_key(
@@ -345,8 +343,7 @@ if __name__ == "__main__":
     JIRA_TOKEN = get_conf_or_env("JIRA_TOKEN", config_data)
     JIRA_TEAM_LABELS = get_conf_or_env("JIRA_TEAM_LABELS", config_data)
 
-    required_variables = "JIRA_URL JIRA_USERNAME JIRA_TOKEN JIRA_TEAM_LABELS".split(
-        " ")
+    required_variables = "JIRA_URL JIRA_USERNAME JIRA_TOKEN JIRA_TEAM_LABELS".split(" ")
 
     for variable in required_variables:
         if eval(variable) is None:
@@ -358,8 +355,7 @@ if __name__ == "__main__":
     ja = JiraAnalysis(JIRA_URL, JIRA_USERNAME, JIRA_TOKEN, JIRA_TEAM_LABELS)
 
     logger.info("Writing stories to issues.csv")
-    issues = ja.write_issues("issues.csv", start_date,
-                             end_date, epics_only, epic)
+    issues = ja.write_issues("issues.csv", start_date, end_date, epics_only, epic)
     ja.summarize_by_epic(issues)
 
     logger.info("Program runtime: %.2f seconds", time.time() - start_time)
