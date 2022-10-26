@@ -27,8 +27,7 @@ if __name__ == "__main__":
 
     row = random.choice(rows)
 
-    answer_choices = [row[x]
-                      for x in ("Answer", "Choice A", "Choice B", "Choice C")]
+    answer_choices = [row[x] for x in ("Answer", "Choice A", "Choice B", "Choice C")]
     random.shuffle(answer_choices)
 
     msg = row["Question"] + "\n" + "\n".join(answer_choices)
