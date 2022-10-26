@@ -22,7 +22,8 @@ class JiraAnalysis:
         self.jira_team_labels = jira_team_labels
         self.sprint_field = self.get_custom_field_key("Sprint")
         self.story_point_field = self.get_custom_field_key("Story Points")
-        self.investment_area_field = self.get_custom_field_key("Investment Area")
+        self.investment_area_field = self.get_custom_field_key(
+            "Investment Area")
         self.epic_link_field = self.get_custom_field_key("Epic Link")
 
         if self.sprint_field is None:
@@ -215,7 +216,8 @@ class JiraAnalysis:
                 num_sprints = len(getattr(issue.fields, self.sprint_field))
             except:
                 num_sprints = 0
-            story_points = get_or_float_zero(issue.fields, self.story_point_field)
+            story_points = get_or_float_zero(
+                issue.fields, self.story_point_field)
             issue_type = self.get_issue_type(issue)
 
             # Has a team and was actually done via sprint process
@@ -223,7 +225,8 @@ class JiraAnalysis:
                 team_sprint_counts[team].append(num_sprints)
 
                 if story_points > 0:
-                    team_sprint_story_point_sum[team] += num_sprints * story_points
+                    team_sprint_story_point_sum[team] += num_sprints * \
+                        story_points
                     team_story_point_sum[team] += story_points
 
             if issue_type == "bug":
@@ -236,7 +239,8 @@ class JiraAnalysis:
                     "%s\t%s\t%s\t%s",
                     team,
                     sum(counts) * 1.0 / len(counts),
-                    team_sprint_story_point_sum[team] / team_story_point_sum[team],
+                    team_sprint_story_point_sum[team] /
+                    team_story_point_sum[team],
                     team_bugs[team],
                 )
             else:
@@ -248,14 +252,17 @@ class JiraAnalysis:
         user_data = {}
         issues = self.get_issues(self.get_issue_query(start_date, end_date))
         for issue in issues:
-            story_points = get_or_float_zero(issue.fields, self.story_point_field)
-            assignee = str(issue.fields.assignee) if issue.fields.assignee else "None"
+            story_points = get_or_float_zero(
+                issue.fields, self.story_point_field)
+            assignee = str(
+                issue.fields.assignee) if issue.fields.assignee else "None"
             user_story_point_sum.update({assignee: int(story_points)})
             if assignee not in user_data:
                 user_data[assignee] = defaultdict(int)
             issue_type = self.get_issue_type(issue)
             user_data[assignee][issue_type + "_cnt"] += 1
-            user_data[assignee][issue_type + "_story_points"] += int(story_points)
+            user_data[assignee][issue_type +
+                                "_story_points"] += int(story_points)
 
         logger.info("User\tSP\tStories\tBugs")
         for user, story_points in user_story_point_sum.most_common(100):
@@ -273,7 +280,8 @@ if __name__ == "__main__":
     JIRA_TOKEN = get_conf_or_env("JIRA_TOKEN", config_data)
     JIRA_TEAM_LABELS = get_conf_or_env("JIRA_TEAM_LABELS", config_data)
 
-    required_variables = "JIRA_URL JIRA_USERNAME JIRA_TOKEN JIRA_TEAM_LABELS".split(" ")
+    required_variables = "JIRA_URL JIRA_USERNAME JIRA_TOKEN JIRA_TEAM_LABELS".split(
+        " ")
 
     for variable in required_variables:
         if eval(variable) is None:

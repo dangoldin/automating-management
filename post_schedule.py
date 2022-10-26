@@ -70,7 +70,8 @@ if __name__ == "__main__":
         CREDENTIALS = json.loads(CREDENTIALS)
 
     sh = SlackHelper(SLACK_TOKEN)
-    gh = GSheetHelper(credentials=CREDENTIALS, credentials_file=CREDENTIALS_FILE)
+    gh = GSheetHelper(credentials=CREDENTIALS,
+                      credentials_file=CREDENTIALS_FILE)
 
     meta_rows = get_meta_rows(WORKBOOK, WORKSHEET_META_TAB)
 
@@ -130,11 +131,13 @@ if __name__ == "__main__":
             if i + 1 < len(all_rows):
                 # TODO: Make date format more generic
                 if i > 0:
-                    prev_date = datetime.strptime(all_rows[i - 1][date_col], "%m/%d/%Y")
+                    prev_date = datetime.strptime(
+                        all_rows[i - 1][date_col], "%m/%d/%Y")
                 else:
                     prev_date = datetime.strptime(rowmap[date_col], "%m/%d/%Y")
                 curr_date = datetime.strptime(rowmap[date_col], "%m/%d/%Y")
-                next_date = datetime.strptime(all_rows[i + 1][date_col], "%m/%d/%Y")
+                next_date = datetime.strptime(
+                    all_rows[i + 1][date_col], "%m/%d/%Y")
 
                 current = is_current(
                     calendar_type, today, prev_date, curr_date, next_date
@@ -153,7 +156,8 @@ if __name__ == "__main__":
                     if user_col and rowmap[user_col]:
                         user_name = rowmap[user_col].lower()
                         try:
-                            slack_username = sh.get_username_for_fullname(user_name)
+                            slack_username = sh.get_username_for_fullname(
+                                user_name)
                         except:
                             print("Failed to get Slack username for " + user_name)
                             sys.exit(1)
