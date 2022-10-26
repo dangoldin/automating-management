@@ -7,7 +7,7 @@ import sys
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("Please specify channel and message")
-        exit()
+        sys.exit()
 
     channel_name = sys.argv[1].replace("#", "")
     message = sys.argv[2]
@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     for member_id in channel_members:
         username = sh.get_name_by_id(member_id)
-        print("Sending to {0}".format(username))
+        print("Sending to %s", username)
         print(
             sh.send_message(
                 msg=message,

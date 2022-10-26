@@ -254,7 +254,7 @@ class JiraAnalysis:
                     l[done_quarter] += story_points
                 epic_map[epic] = l
 
-        logger.info("Updating %d epics" % len(epic_map))
+        logger.info("Updating %d epics", len(epic_map))
         executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
         futures = []
         for epic_id, vals in epic_map.items():
