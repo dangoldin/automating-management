@@ -27,6 +27,7 @@ QUARTER_MAP = {
     "2022-Q1": ("2022-01-10", "2022-04-04"),
     "2022-Q2": ("2022-04-04", "2022-07-11"),
     "2022-Q3": ("2022-07-11", "2022-10-01"),
+    "2022-Q4": ("2022-10-01", "2023-01-01"),
 }
 
 
@@ -251,7 +252,7 @@ class JiraAnalysis:
                     l[done_quarter] += story_points
                 epic_map[epic] = l
 
-        logger.info("Updating %d epics" % len(epic_map))
+        logger.info("Updating %d epics", len(epic_map))
         executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
         futures = []
         for epic_id, vals in epic_map.items():
@@ -267,8 +268,7 @@ class JiraAnalysis:
                     self.story_point_done_q1_field: vals["2022-Q1"],
                     self.story_point_done_q2_field: vals["2022-Q2"],
                     self.story_point_done_q3_field: vals["2022-Q3"],
-                    # Enable these later
-                    # self.story_point_done_q4_field: vals["2022-Q4"],
+                    self.story_point_done_q4_field: vals["2022-Q4"],
                 },
             )
             futures.append(future)
