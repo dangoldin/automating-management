@@ -41,6 +41,8 @@ if __name__ == "__main__":
         + '" '
         + " ".join('"' + x + '"' for x in answer_choices)
     )
-    sh.execute_command(
-        msg, "TEST TEST", "#tmp-slack-api", "http://dan.triplelift.net/q.png"
-    )
+
+    # TODO: This is broken right now so fix this
+    # sh.execute_command(
+    #     msg, "TEST TEST", "#tmp-slack-api", "http://dan.triplelift.net/q.png"
+    # )

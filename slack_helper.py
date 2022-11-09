@@ -53,29 +53,6 @@ class SlackHelper:
         channel_id = self.get_channel_id(channel)
         return self.sc.conversations_history(channel=channel_id)
 
-    def execute_command(self, msg, username, channel, icon_url, as_user=False):
-        return self.sc.api_call(
-            "chat.command",
-            username=username,
-            as_user=as_user,
-            channel=channel,
-            icon_url=icon_url,
-            command=msg,
-            link_names=1,
-            parse="full",
-        )
-
-    def get_channel_id(self, channel_filter):
-        all_channels = self.sc.api_call("conversations.list")["channels"]
-
-        my_channel = [
-            channel
-            for channel in all_channels
-            if channel["name"] == channel_filter.replace("#", "")
-        ]
-
-        return my_channel[0]["id"]
-
     def get_channel_id(self, channel_filter):
         response = self.sc.api_call(
             "conversations.list", data={"types": "public_channel"}
@@ -85,7 +62,7 @@ class SlackHelper:
         # Get next page
         while response["response_metadata"]["next_cursor"]:
             next_cursor = response["response_metadata"]["next_cursor"]
-            print("Getting next page", next_cursor)
+            logging.info("Getting next page of channels with cursor: %s", next_cursor)
             response = self.sc.api_call(
                 "conversations.list",
                 data={"cursor": next_cursor, "types": "public_channel"},
