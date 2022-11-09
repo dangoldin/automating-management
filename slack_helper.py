@@ -77,14 +77,19 @@ class SlackHelper:
         return my_channel[0]["id"]
 
     def get_channel_id(self, channel_filter):
-        response = self.sc.api_call("conversations.list", data={"types":"public_channel"})
+        response = self.sc.api_call(
+            "conversations.list", data={"types": "public_channel"}
+        )
         channels = response["channels"]
 
         # Get next page
         while response["response_metadata"]["next_cursor"]:
             next_cursor = response["response_metadata"]["next_cursor"]
             print("Getting next page", next_cursor)
-            response = self.sc.api_call("conversations.list", data={"cursor": next_cursor, "types":"public_channel"})
+            response = self.sc.api_call(
+                "conversations.list",
+                data={"cursor": next_cursor, "types": "public_channel"},
+            )
             channels.extend(response["channels"])
 
         for channel in channels:
@@ -93,12 +98,17 @@ class SlackHelper:
 
         return None
 
-
     def get_channel_members(self, channel_id):
-        response = self.sc.api_call("conversations.members", data={"channel": channel_id})
+        response = self.sc.api_call(
+            "conversations.members", data={"channel": channel_id}
+        )
         member_ids = response["members"]
 
-        return [self.user_id_map[member_id] for member_id in member_ids if member_id in self.user_id_map]
+        return [
+            self.user_id_map[member_id]
+            for member_id in member_ids
+            if member_id in self.user_id_map
+        ]
 
     def get_emoji(self):
         return self.sc.api_call(

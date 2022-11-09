@@ -20,4 +20,9 @@ if __name__ == "__main__":
     channel_members = sh.get_channel_members(channel_id)
 
     for user in channel_members:
-        print(user["id"], user["name"], user["real_name"], user["profile"].get("email",None))
+        print(
+            user["id"],
+            user["name"],
+            user["real_name"],
+            user["profile"].get("email", None),
+        )
