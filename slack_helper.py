@@ -10,6 +10,7 @@ class SlackHelper:
     def __init__(self, token):
         self.sc = WebClient(token)
         self.user_map = self.get_users_as_map()
+        self.user_id_map = self.get_user_ids_as_map()
 
     def get_users_as_map(self):
         users = self.sc.api_call("users.list")
@@ -18,6 +19,15 @@ class SlackHelper:
         for user in users:
             if not user["deleted"]:
                 user_map[user["profile"]["real_name"].lower()] = user
+        return user_map
+
+    def get_user_ids_as_map(self):
+        users = self.sc.api_call("users.list")
+        users = users["members"]
+        user_map = {}
+        for user in users:
+            if not user["deleted"]:
+                user_map[user["id"]] = user
         return user_map
 
     def get_username_for_fullname(self, fullname):
@@ -66,21 +76,39 @@ class SlackHelper:
 
         return my_channel[0]["id"]
 
-    def get_channel_members(self, channel_filter):
-        all_channels = self.sc.api_call("channels.list")["channels"]
+    def get_channel_id(self, channel_filter):
+        response = self.sc.api_call(
+            "conversations.list", data={"types": "public_channel"}
+        )
+        channels = response["channels"]
 
-        my_channel = [
-            channel
-            for channel in all_channels
-            if channel["name"] == channel_filter.replace("#", "")
+        # Get next page
+        while response["response_metadata"]["next_cursor"]:
+            next_cursor = response["response_metadata"]["next_cursor"]
+            print("Getting next page", next_cursor)
+            response = self.sc.api_call(
+                "conversations.list",
+                data={"cursor": next_cursor, "types": "public_channel"},
+            )
+            channels.extend(response["channels"])
+
+        for channel in channels:
+            if channel["name"] == channel_filter.replace("#", ""):
+                return channel["id"]
+
+        return None
+
+    def get_channel_members(self, channel_id):
+        response = self.sc.api_call(
+            "conversations.members", data={"channel": channel_id}
+        )
+        member_ids = response["members"]
+
+        return [
+            self.user_id_map[member_id]
+            for member_id in member_ids
+            if member_id in self.user_id_map
         ]
-
-        if not my_channel:
-            return None
-
-        user_ids = [user["id"] for user in self.user_map.values()]
-
-        return [user for user in my_channel[0]["members"] if user in user_ids]
 
     def get_emoji(self):
         return self.sc.api_call(
