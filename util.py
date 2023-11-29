@@ -7,6 +7,7 @@ FORMAT = "%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger("util")
 
+
 # Iterate through key/vals in dictionary and print
 def print_dict(d, delim="\t"):
     final_str = ""
